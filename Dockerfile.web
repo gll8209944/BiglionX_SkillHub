@@ -1,0 +1,39 @@
+﻿# 多阶段构建 - Web 应用
+FROM node:20-alpine AS web-builder
+
+WORKDIR /app
+
+# 复制 package.json 和 lock 文件
+COPY package*.json ./
+COPY apps/web/package*.json ./apps/web/
+
+# 安装依赖
+RUN npm ci
+
+# 复制源代码
+COPY . .
+
+# 构建 Web 应用
+WORKDIR /app/apps/web
+RUN npm run build
+
+# 生产阶段
+FROM node:20-alpine AS web-production
+
+WORKDIR /app
+
+# 复制 package.json
+COPY package*.json ./
+COPY apps/web/package*.json ./apps/web/
+
+# 仅安装生产依赖
+RUN npm ci --production
+
+# 复制构建产物
+COPY --from=web-builder /app/apps/web/.next ./.next
+COPY --from=web-builder /app/apps/web/public ./public
+COPY --from=web-builder /app/apps/web/next.config.* ./
+
+EXPOSE 3000
+
+CMD ["npm", "start"]

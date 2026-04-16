@@ -1,0 +1,18 @@
+{
+  "name": "skillhub",
+  "version": "1.0.0",
+  "description": "> **企业级、可自托管、开源的AI Agent技能管理平台** > 类似于\"AI时代的npm/Docker Hub\"，专门为Skills设计",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "turbo": "^2.9.6"
+  }
+}
