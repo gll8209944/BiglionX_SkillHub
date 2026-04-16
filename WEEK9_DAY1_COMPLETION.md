@@ -105,16 +105,22 @@ apps/web/
 - 支持命名空间和审核工作流
 
 #### 2. 环境变量文件 ✅
-创建了 `.env.local`，包含：
-- DATABASE_URL
+创建了 `.env.local` 和 `.env.example`，包含：
+- **DATABASE_URL** - Neon 数据库连接字符串（带 SSL）
+- **DIRECT_URL** - Neon 直连 URL（用于迁移）
 - NEXTAUTH_SECRET
 - NEXTAUTH_URL
 - GITHUB_CLIENT_ID / GITHUB_CLIENT_SECRET
 - REDIS_URL
 - Supabase 配置占位符
 
+**注意**: 项目使用 **Neon Serverless PostgreSQL**，不是本地数据库。
+
 #### 3. Prisma Client 单例 ✅
 创建了 `lib/prisma.ts`，实现：
+- **Neon 适配器集成** - 使用 @prisma/adapter-neon
+- **WebSocket 配置** - 支持 Neon 的 serverless 连接
+- **连接池管理** - 使用 @neondatabase/serverless Pool
 - 开发环境单例模式
 - 防止热重载时创建多个实例
 - TypeScript 类型安全
@@ -233,10 +239,23 @@ apps/web/
 ## 🚀 下一步计划
 
 ### Day 2-3: 数据库设置
-1. 安装 PostgreSQL（如果尚未安装）
-2. 创建 skillhub 数据库
-3. 运行 `npx prisma db push` 或 `npx prisma migrate dev`
-4. 验证数据库表创建成功
+1. **在 Neon 创建项目**
+   - 访问 https://console.neon.tech
+   - 创建新项目 "Skill Hub"
+   - 获取连接字符串
+
+2. **配置环境变量**
+   - 复制 `.env.example` 为 `.env.local`
+   - 填入 Neon 连接字符串
+   - 设置 NEXTAUTH_SECRET
+
+3. **运行数据库迁移**
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
+
+4. **验证数据库表创建成功**
 
 ### Day 3-4: 认证系统
 1. 配置 NextAuth
@@ -279,10 +298,14 @@ apps/web/
 
 ## 📝 注意事项
 
-1. **数据库连接**: 需要配置实际的 PostgreSQL 数据库
+1. **数据库**: 项目使用 **Neon Serverless PostgreSQL**
+   - 需要在 https://console.neon.tech 创建项目
+   - 参考 `apps/web/NEON_SETUP.md` 获取详细配置指南
+   
 2. **GitHub OAuth**: 需要在 GitHub 创建 OAuth 应用并配置 Client ID/Secret
 3. **环境变量**: 生产环境需要更改 NEXTAUTH_SECRET
 4. **Node.js 版本**: 当前使用 v20.11.0，Prisma 5.22.0 兼容
+5. **SSL 连接**: Neon 强制要求 SSL，确保连接字符串包含 `sslmode=require`
 
 ---
 
