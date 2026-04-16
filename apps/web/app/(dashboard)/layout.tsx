@@ -1,8 +1,14 @@
-export default function DashboardLayout({
+import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { signOut } from 'next-auth/react';
+
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const user = session?.user;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <nav className="bg-white shadow-sm">
@@ -12,7 +18,26 @@ export default function DashboardLayout({
               <h1 className="text-xl font-bold text-gray-900">Skill Hub</h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">Dashboard</span>
+              {user && (
+                <>
+                  <div className="flex items-center space-x-2">
+                    {user.image && (
+                      <img
+                        src={user.image}
+                        alt={user.name || 'User'}
+                        className="h-8 w-8 rounded-full"
+                      />
+                    )}
+                    <span className="text-sm text-gray-700">{user.name}</span>
+                  </div>
+                  <button
+                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    退出登录
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
