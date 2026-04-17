@@ -65,6 +65,9 @@ apps/web
 
 这是关键配置，因为 SkillHub 使用 Monorepo 结构。
 
+> ⚠️ **注意**: 不需要 `vercel.json` 配置文件！Vercel 会自动检测 Next.js 项目。
+> 只需在 Vercel Dashboard 中设置 Root Directory 为 `apps/web` 即可。
+
 #### 步骤 3: 配置环境变量
 
 在 Vercel 的 "Environment Variables" 中添加：
@@ -83,16 +86,15 @@ GITHUB_SECRET=your-github-client-secret
 REDIS_URL=redis://default:password@redis.example.com:6379
 ```
 
-#### 步骤 4: 配置 Build Settings
+#### 步骤 4: 配置 Build Settings（可选）
+
+Vercel 会自动检测 Next.js 项目并使用正确的构建命令，通常不需要手动配置。
+
+如需自定义，可以设置：
 
 **Build Command:**
 ```bash
-cd apps/web && npm install && npx prisma generate && npx prisma migrate deploy && npm run build
-```
-
-**Output Directory:**
-```
-apps/web/.next
+npx prisma generate && npm run build
 ```
 
 **Install Command:**
@@ -137,6 +139,9 @@ vercel --prod
 ```
 apps/web
 ```
+
+> ⚠️ **注意**: 不需要创建 `vercel.json` 文件！Vercel 会自动检测 Next.js 项目。
+> 只需设置 Root Directory 即可。
 
 ---
 
