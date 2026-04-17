@@ -9,6 +9,10 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Skill Hub - AI Agent Skills Registry',
   description: 'Enterprise-grade, open-source AI agent skill registry',
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
 };
 
 export default function RootLayout({

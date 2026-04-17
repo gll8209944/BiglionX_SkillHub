@@ -30,22 +30,10 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 p-8 md:p-10 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50">
         {/* Logo 和标题 */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 bg-linear-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
-            <svg
-              className="h-12 w-12 text-white"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 10V3L4 14h7v7l9-11h-7z"
-              />
-            </svg>
+          <div className="mx-auto h-20 w-20 flex items-center justify-center mb-4">
+            <img src="/logo.png" alt="Skill Hub Logo" className="w-full h-full object-contain" />
           </div>
-          <h2 className="mt-6 text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+          <h2 className="mt-2 text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             欢迎使用 Skill Hub
           </h2>
           <p className="mt-2 text-sm text-gray-500">
