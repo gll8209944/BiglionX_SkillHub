@@ -4,8 +4,8 @@
 > 类似于"AI时代的npm/Docker Hub"，专门为Skills设计
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-planning-yellow.svg)]()
-[![Version](https://img.shields.io/badge/version-1.0.0--planning-green.svg)]()
+[![Status](https://img.shields.io/badge/status-active-green.svg)]()
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
 
 ---
 
@@ -18,6 +18,9 @@ Skill Hub是一个**独立的企业级AI Agent技能注册中心**，可以：
 - ✅ **多Agent支持** - OpenClaw、Claude Code、Cursor等
 - ✅ **企业级特性** - 命名空间、审核流程、审计日志
 - ✅ **与ProClaw集成** - 可作为ProClaw生态的技能商店
+- ✨ **Settings 设置系统** - 个人资料、账户安全、通知管理、API密钥
+- ✨ **Analytics 数据分析** - 平台统计、趋势图表、数据可视化
+- ✨ **现代 UX** - Toast 通知、Skeleton 骨架屏、响应式设计
 
 ---
 
@@ -124,6 +127,7 @@ ORM: Prisma
 - [🐳 部署指南](./docs/DEPLOYMENT.md) - Docker和K8s部署
 - [🔧 开发指南](./docs/DEVELOPMENT.md) - 本地开发和贡献
 - [❓ 常见问题](./docs/FAQ.md) - FAQ
+- [🗺️ 网站地图](./apps/web/SITEMAP_README.md) - SEO和搜索引擎优化
 
 ---
 
@@ -179,15 +183,16 @@ const skills = await store.search('inventory');
 ## 📊 项目状态
 
 - [x] 项目规划完成
-- [ ] 基础设施搭建 (Week 1-2)
-- [ ] 核心功能开发 (Week 3-4)
-- [ ] 审核系统 (Week 5-6)
-- [ ] CLI工具 (Week 7)
-- [ ] Docker配置 (Week 8)
-- [ ] 开源准备 (Week 9-10)
-- [ ] 🚀 v1.0发布
+- [x] 基础设施搭建 (Week 1-2)
+- [x] 核心功能开发 (Week 3-4)
+- [x] 审核系统 (Week 5-6)
+- [x] CLI工具 (Week 7)
+- [x] Docker配置 (Week 8)
+- [x] 性能优化与文档 (Week 9)
+- [x] 功能完善 (Week 10)
+- [x] 🚀 v1.0发布准备 (Week 11)
 
-**预计发布时间**: 2026年6月底
+**预计发布时间**: 2026年4月底
 
 ---
 
@@ -244,9 +249,9 @@ const skills = await store.search('inventory');
 
 ---
 
-**版本**: v1.0.0-planning
+**版本**: v1.0.0
 **最后更新**: 2026-04-16
-**预计发布**: 2026年6月底
+**发布日期**: 2026年4月
 
 ---
 

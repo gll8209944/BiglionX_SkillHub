@@ -1,6 +1,4 @@
-﻿#!/usr/bin/env node
-
-import { Command } from 'commander';
+﻿import { Command } from 'commander';
 import chalk from 'chalk';
 import { version } from '../package.json';
 import { publishCommand } from './commands/publish.js';
@@ -28,20 +26,12 @@ program.on('command:*', () => {
   process.exit(1);
 });
 
-// Handle errors
-program.exitOverride();
+// Parse arguments
+program.parse(process.argv);
 
-try {
-  program.parse(process.argv);
-  
-  // Show help if no command provided
-  if (!process.argv.slice(2).length) {
-    program.outputHelp();
-  }
-} catch (error: any) {
-  if (error.code !== 'commander.helpDisplayed') {
-    console.error(chalk.red('Error:', error.message));
-    process.exit(1);
-  }
+// Show help if no command provided (exit successfully)
+if (!process.argv.slice(2).length) {
+  program.outputHelp();
+  process.exit(0); // Exit successfully
 }
 

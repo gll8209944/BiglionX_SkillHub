@@ -13,20 +13,26 @@ export default function LoginPage() {
         callbackUrl: '/dashboard' 
       });
     } catch (error) {
-      console.error('登录失败:', error);
+      console.error('GitHub 登录失败:', error);
+      alert('GitHub 登录失败，请稍后重试');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // 暂时禁用邮箱登录（需要 Prisma Adapter 存储验证码）
+  // const handleEmailLogin = async (e: React.FormEvent) => {
+  //   ...
+  // };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-lg">
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-50 via-blue-50 to-indigo-100 p-4">
+      <div className="max-w-md w-full space-y-8 p-8 md:p-10 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50">
         {/* Logo 和标题 */}
         <div className="text-center">
-          <div className="mx-auto h-16 w-16 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+          <div className="mx-auto h-20 w-20 bg-linear-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
             <svg
-              className="h-10 w-10 text-white"
+              className="h-12 w-12 text-white"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -39,10 +45,10 @@ export default function LoginPage() {
               />
             </svg>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-6 text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             欢迎使用 Skill Hub
           </h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <p className="mt-2 text-sm text-gray-500">
             AI Agent 技能注册中心
           </p>
         </div>
@@ -52,7 +58,7 @@ export default function LoginPage() {
           <button
             onClick={handleGitHubLogin}
             disabled={isLoading}
-            className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gray-900 hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex items-center justify-center px-4 py-3.5 border border-transparent text-base font-semibold rounded-xl text-white bg-linear-to-r from-gray-900 to-gray-800 hover:from-gray-800 hover:to-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5"
           >
             {isLoading ? (
               <svg
@@ -88,29 +94,63 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* 说明文字 */}
+        {/* 分隔线 - 暂时隐藏 */}
+        {/* <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-3 bg-white text-gray-500 font-medium">
+                或者使用邮箱登录
+              </span>
+            </div>
+          </div>
+        </div> */}
+
+        {/* 邮箱登录表单 - 暂时隐藏（需要 Prisma Adapter） */}
+        {/* <form onSubmit={handleEmailLogin} className="mt-6 space-y-4">
+          ...
+        </form> */}
+
+        {/* 功能列表 */}
         <div className="mt-6">
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-300"></div>
+              <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-white text-gray-500">
+              <span className="px-3 bg-white text-gray-500 font-medium">
                 安全、便捷的 OAuth 认证
               </span>
             </div>
           </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p>
+          <div className="mt-6">
+            <p className="text-center text-sm font-medium text-gray-700 mb-4">
               登录后，您可以：
             </p>
-            <ul className="mt-2 space-y-1">
-              <li>✅ 发布和管理 Skills</li>
-              <li>✅ 创建命名空间</li>
-              <li>✅ 查看下载统计</li>
-              <li>✅ 参与审核流程</li>
-            </ul>
+            <div className="grid gap-3">
+              {[
+                { icon: '📦', title: '发布和管理 Skills', desc: '轻松上传和更新你的 AI 技能' },
+                { icon: '🏷️', title: '创建命名空间', desc: '组织和管理你的技能集合' },
+                { icon: '📊', title: '查看下载统计', desc: '实时追踪技能使用情况' },
+                { icon: '✅', title: '参与审核流程', desc: '贡献社区，审核他人技能' },
+              ].map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-start p-3 bg-linear-to-r from-gray-50 to-white rounded-lg border border-gray-100 hover:border-blue-200 hover:shadow-md transition-all duration-200 group"
+                >
+                  <div className="shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-semibold text-gray-900">{item.title}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

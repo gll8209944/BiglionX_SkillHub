@@ -13,6 +13,8 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@mui/material', '@mui/icons-material'],
   },
+  compress: true,
+  poweredByHeader: false,
 }
 
 module.exports = nextConfig

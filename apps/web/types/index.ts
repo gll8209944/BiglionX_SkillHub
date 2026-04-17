@@ -7,6 +7,7 @@ export interface Skill {
   version: string;
   category: string;
   tags: string[];
+  repositoryUrl?: string;
   packageUrl?: string;
   iconUrl?: string;
   screenshots: string[];

@@ -1,4 +1,6 @@
-import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { auth as nextAuth } from '@/app/api/auth/[...nextauth]/route';
+
+export const auth = nextAuth;
 
 /**
  * 获取当前会话
