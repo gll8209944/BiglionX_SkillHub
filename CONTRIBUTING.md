@@ -33,7 +33,7 @@ cd skillhub
 
 ### 3. 添加上游远程仓库
 ```bash
-git remote add upstream https://github.com/BigLionX/skillhub.git
+git remote add upstream https://github.com/BigLionX/SkillHub.git
 ```
 
 ### 4. 创建特性分支

@@ -5,7 +5,7 @@
 ### 1. 克隆项目
 
 \\\ash
-git clone https://github.com/BigLionX/skillhub.git
+git clone https://github.com/BigLionX/SkillHub.git
 cd skillhub
 \\\
 

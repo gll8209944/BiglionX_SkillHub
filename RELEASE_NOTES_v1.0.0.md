@@ -144,7 +144,7 @@
 
 ```bash
 # 克隆仓库
-git clone https://github.com/BigLionX/skillhub.git
+git clone https://github.com/BigLionX/SkillHub.git
 cd skillhub
 
 # 配置环境变量
@@ -240,9 +240,9 @@ npm run dev
 
 ## 🔗 相关链接
 
-- **GitHub Repository**: https://github.com/BigLionX/skillhub
-- **Documentation**: https://github.com/BigLionX/skillhub/tree/main/docs
-- **Issue Tracker**: https://github.com/BigLionX/skillhub/issues
+- **GitHub Repository**: https://github.com/BigLionX/SkillHub
+- **Documentation**: https://github.com/BigLionX/SkillHub/tree/main/docs
+- **Issue Tracker**: https://github.com/BigLionX/SkillHub/issues
 - **Website**: https://skillhub.proclaw.cc
 
 ---

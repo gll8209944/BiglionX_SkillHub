@@ -21,17 +21,17 @@
 
 ### 一键启动
 
-\\\ash
+```
 # 克隆仓库
-git clone https://github.com/BigLionX/skillhub.git
-cd skillhub
+git clone https://github.com/BigLionX/SkillHub.git
+cd SkillHub
 
 # 启动所有服务
 docker-compose up -d
 
 # 查看日志
 docker-compose logs -f web
-\\\
+```
 
 访问 http://localhost:3000
 
@@ -65,7 +65,7 @@ Web 应用的多阶段构建：
 
 ### 常用命令
 
-\\\ash
+```
 # 启动服务
 docker-compose up -d
 
@@ -87,7 +87,7 @@ docker-compose ps
 # 更新服务
 docker-compose pull
 docker-compose up -d
-\\\
+```
 
 ---
 
@@ -97,7 +97,7 @@ docker-compose up -d
 
 创建 \.env\ 文件：
 
-\\\env
+```
 # 数据库配置
 DATABASE_URL=postgresql://skillhub:password@db:5432/skillhub
 
@@ -120,17 +120,17 @@ S3_BUCKET=skillhub-storage
 S3_REGION=us-east-1
 S3_ACCESS_KEY=your-access-key
 S3_SECRET_KEY=your-secret-key
-\\\
+```
 
 ### CLI 工具环境变量
 
-\\\env
+```
 # API 地址
 SKILLHUB_API_URL=https://skillhub.proclaw.cc
 
 # 认证令牌
 SKILLHUB_TOKEN=your-api-token
-\\\
+```
 
 ---
 
@@ -140,8 +140,7 @@ SKILLHUB_TOKEN=your-api-token
 
 #### Nginx 配置示例
 
-\\\
-ginx
+```
 server {
     listen 80;
     server_name skillhub.yourdomain.com;
@@ -155,11 +154,11 @@ server {
         proxy_cache_bypass \;
     }
 }
-\\\
+```
 
 #### Traefik 配置示例
 
-\\\yaml
+```
 version: '3.8'
 
 services:
@@ -177,26 +176,26 @@ services:
       - "traefik.http.routers.skillhub.rule=Host(\skillhub.yourdomain.com\)"
       - "traefik.http.routers.skillhub.tls=true"
       - "traefik.http.routers.skillhub.tls.certresolver=letsencrypt"
-\\\
+```
 
 ### HTTPS 配置
 
 使用 Let's Encrypt 获取免费 SSL 证书：
 
-\\\ash
+```
 # 使用 certbot
 certbot --nginx -d skillhub.yourdomain.com
-\\\
+```
 
 ### 数据库备份
 
-\\\ash
+```
 # 备份数据库
 docker-compose exec db pg_dump -U skillhub skillhub > backup.sql
 
 # 恢复数据库
 cat backup.sql | docker-compose exec -T db psql -U skillhub skillhub
-\\\
+```
 
 ---
 
@@ -210,14 +209,14 @@ ClawHub 是 OpenClaw 等 AI Agent 使用的技能注册协议。Skill Hub 完全
 
 在 OpenClaw 配置文件中添加：
 
-\\\json
+```
 {
   "registry": {
     "url": "https://skillhub.proclaw.cc",
     "protocol": "clawhub"
   }
 }
-\\\
+```
 
 ### API 端点
 
@@ -230,13 +229,13 @@ Skill Hub 提供以下 ClawHub 兼容端点：
 
 ### 使用示例
 
-\\\ash
+```
 # OpenClaw 中安装技能
 claw skill install smart-replenishment --registry https://skillhub.proclaw.cc
 
 # Claude Code 中配置
 claude config set registry https://skillhub.proclaw.cc
-\\\
+```
 
 ---
 
@@ -246,7 +245,7 @@ claude config set registry https://skillhub.proclaw.cc
 
 #### 1. 容器无法启动
 
-\\\ash
+```
 # 查看详细日志
 docker-compose logs web
 
@@ -256,11 +255,11 @@ netstat -tulpn | grep 3000
 # 重新启动
 docker-compose down
 docker-compose up -d
-\\\
+```
 
 #### 2. 数据库连接失败
 
-\\\ash
+```
 # 检查数据库是否运行
 docker-compose ps db
 
@@ -269,22 +268,22 @@ docker-compose logs db
 
 # 测试连接
 docker-compose exec db psql -U skillhub -d skillhub
-\\\
+```
 
 #### 3. Redis 连接失败
 
-\\\ash
+```
 # 检查 Redis 状态
 docker-compose exec redis redis-cli ping
 
 # 应该返回: PONG
-\\\
+```
 
 #### 4. 内存不足
 
 调整 Docker 资源限制：
 
-\\\yaml
+```
 services:
   web:
     deploy:
@@ -293,13 +292,13 @@ services:
           memory: 1G
         reservations:
           memory: 512M
-\\\
+```
 
 ### 性能优化
 
 #### 数据库优化
 
-\\\sql
+```
 -- 创建索引
 CREATE INDEX idx_skills_name ON skills(name);
 CREATE INDEX idx_skills_namespace ON skills(namespace);
@@ -307,16 +306,16 @@ CREATE INDEX idx_skills_tags ON skills USING GIN(tags);
 
 -- 分析表
 ANALYZE skills;
-\\\
+```
 
 #### 缓存优化
 
 确保 Redis 正常运行：
 
-\\\ash
+```
 # 检查缓存命中率
 docker-compose exec redis redis-cli INFO stats
-\\\
+```
 
 ---
 
@@ -324,14 +323,14 @@ docker-compose exec redis redis-cli INFO stats
 
 ### 健康检查
 
-\\\ash
+```
 # 检查所有服务健康状态
 curl http://localhost:3000/api/health
-\\\
+```
 
 ### 日志管理
 
-\\\ash
+```
 # 实时查看所有日志
 docker-compose logs -f
 
@@ -340,7 +339,7 @@ docker-compose logs -f web
 
 # 导出日志
 docker-compose logs web > web.log
-\\\
+```
 
 ---
 
@@ -348,28 +347,28 @@ docker-compose logs web > web.log
 
 ### 更新应用
 
-\\\ash
+```
 # 拉取最新代码
 git pull
 
 # 重新构建并启动
 docker-compose build
 docker-compose up -d
-\\\
+```
 
 ### 数据库迁移
 
-\\\ash
+```
 # 运行数据库迁移
 docker-compose exec web npx prisma migrate deploy
-\\\
+```
 
 ---
 
 ## 📞 支持
 
 - **文档**: https://skillhub.proclaw.cc/docs
-- **GitHub Issues**: https://github.com/BigLionX/skillhub/issues
+- **GitHub Issues**: https://github.com/BigLionX/SkillHub/issues
 - **Email**: hello@skillhub.proclaw.cc
 
 ---

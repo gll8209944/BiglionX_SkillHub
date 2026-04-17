@@ -31,8 +31,8 @@ Skill Hub是一个**独立的企业级AI Agent技能注册中心**，可以：
 
 ```bash
 # 克隆仓库
-git clone https://github.com/BigLionX/skillhub.git
-cd skillhub
+git clone https://github.com/BigLionX/SkillHub.git
+cd SkillHub
 
 # 一键启动
 docker-compose up -d
@@ -270,7 +270,7 @@ const skills = await store.search('inventory');
 
 - **Website**: https://skillhub.proclaw.cc
 - **Email**: hello@skillhub.proclaw.cc
-- **GitHub**: https://github.com/BigLionX/skillhub
+- **GitHub**: https://github.com/BigLionX/SkillHub
 - **Discord**: [加入社区](https://discord.gg/skillhub) (待创建)
 
 ---
