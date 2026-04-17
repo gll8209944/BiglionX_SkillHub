@@ -1,15 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { auth } from '@/lib/auth';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};
+// Next.js 14 App Router segment config
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 /**
  * POST /api/upload
