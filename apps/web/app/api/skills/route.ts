@@ -143,7 +143,7 @@ export async function POST(request: NextRequest) {
 
       // 检查用户是否是命名空间成员或所有者
       const isMember = namespace.members.some(
-        (member) => member.userId === session.user?.id
+        (member: { userId: string }) => member.userId === session.user?.id
       );
       const isOwner = namespace.ownerId === session.user?.id;
 
