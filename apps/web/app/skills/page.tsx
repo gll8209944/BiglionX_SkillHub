@@ -105,14 +105,14 @@ export default async function PublicSkillsPage({
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
+    <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
       {/* 顶部导航 */}
       <nav className="sticky top-0 z-50 w-full px-6 py-4 border-b border-gray-200 bg-white/90 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-3 group">
               <img src="/logo.png" alt="Skill Hub Logo" className="h-10 w-10 object-contain" />
-              <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <span className="text-2xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
                 Skill Hub
               </span>
             </Link>
@@ -153,7 +153,7 @@ export default async function PublicSkillsPage({
               </Link>
               <Link
                 href="/register"
-                className="px-5 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
               >
                 注册
               </Link>
@@ -162,7 +162,7 @@ export default async function PublicSkillsPage({
         </div>
       </nav>
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-700 to-purple-800 text-white">
+      <div className="relative overflow-hidden bg-linear-to-r from-blue-600 via-indigo-700 to-purple-800 text-white">
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute top-0 left-0 w-full h-full bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDYwIEwgNjAgMCIgc3Ryb2tlPSIjZmZmZmZmIiBzdHJva2Utd2lkdGg9IjIiIGZpbGw9Im5vbmUiIGZpbGwtb3BhY2l0eT0iMC4zIiBzdHJva2Utb3BhY2l0eT0iMC4zIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-20"></div>
@@ -200,7 +200,7 @@ export default async function PublicSkillsPage({
                 />
                 <button
                   type="submit"
-                  className="absolute right-2 px-8 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                  className="absolute right-2 px-8 py-2.5 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
                 >
                   搜索
                 </button>
@@ -232,7 +232,7 @@ export default async function PublicSkillsPage({
           <aside className="w-64 shrink-0">
             <div className="bg-white/80 backdrop-blur-sm shadow-lg shadow-gray-200/50 rounded-2xl p-6 sticky top-4">
               <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
                   <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                   </svg>
@@ -246,7 +246,7 @@ export default async function PublicSkillsPage({
                     href={cat.value ? `/?category=${cat.value}` : '/'}
                     className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
                       category === cat.value
-                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
+                        ? 'bg-linear-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
                         : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:translate-x-1'
                     }`}
                   >
@@ -287,7 +287,7 @@ export default async function PublicSkillsPage({
             {/* Skills 网格 */}
             {skills.length === 0 ? (
               <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
+                <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
                   <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                   </svg>
@@ -296,7 +296,7 @@ export default async function PublicSkillsPage({
                 <p className="text-gray-600 mb-6">尝试调整搜索条件或浏览其他分类</p>
                 <Link
                   href="/"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -313,7 +313,7 @@ export default async function PublicSkillsPage({
                     className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all overflow-hidden border border-gray-100"
                   >
                     {/* Card Header with gradient accent */}
-                    <div className="h-1.5 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="h-1.5 bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                     
                     <div className="p-6">
                       <div className="flex items-start justify-between mb-4">
@@ -321,7 +321,7 @@ export default async function PublicSkillsPage({
                           {skill.name}
                         </h3>
                         {skill.namespace && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-gradient-to-r from-purple-500/10 to-indigo-500/10 text-purple-700 border border-purple-200">
+                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-linear-to-r from-purple-500/10 to-indigo-500/10 text-purple-700 border border-purple-200">
                             {skill.namespace.name}
                           </span>
                         )}
@@ -341,7 +341,7 @@ export default async function PublicSkillsPage({
                               className="w-8 h-8 rounded-full mr-2 ring-2 ring-white"
                             />
                           ) : (
-                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center mr-2 text-white text-xs font-bold">
+                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-indigo-500 flex items-center justify-center mr-2 text-white text-xs font-bold">
                               {skill.author?.name?.charAt(0).toUpperCase() || '?'}
                             </div>
                           )}
@@ -369,7 +369,7 @@ export default async function PublicSkillsPage({
                           {skill.tags.slice(0, 3).map((tag: string, idx: number) => (
                             <span
                               key={idx}
-                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200 hover:border-blue-300 transition-colors"
+                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-linear-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200 hover:border-blue-300 transition-colors"
                             >
                               {tag}
                             </span>
