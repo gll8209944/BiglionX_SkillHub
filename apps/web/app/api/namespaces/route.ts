@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return unauthorizedResponse();
     }
 
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
         slug,
         description: description || '',
         type,
-        ownerId: session.user.id!,
+        ownerId: session.user.id,
       },
       include: {
         owner: {
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     await prisma.namespaceMember.create({
       data: {
         namespaceId: namespace.id,
-        userId: session.user.id!,
+        userId: session.user.id,
         role: 'OWNER',
       },
     });
