@@ -2,7 +2,7 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Metadata } from 'next';
 
-// 定义类型
+// Define types
 interface SkillWithRelations {
   id: string;
   name: string;
@@ -45,7 +45,7 @@ export default async function PublicSkillsPage({
   const limit = 20;
   const skip = (page - 1) * limit;
 
-  // 构建查询条件
+  // Build query conditions
   const where: Record<string, unknown> = {
     status: 'APPROVED',
     isPublic: true,
@@ -63,10 +63,10 @@ export default async function PublicSkillsPage({
     ];
   }
 
-  // 获取总数
+  // Get total count
   const total = await prisma.skill.count({ where });
 
-  // 获取 skills
+  // Get skills
   const skills = await prisma.skill.findMany({
     where,
     skip,
@@ -92,7 +92,7 @@ export default async function PublicSkillsPage({
     },
   });
 
-  // 分类列表
+  // Category list
   const categories = [
     { value: '', label: '全部' },
     { value: 'ai-agent', label: 'AI Agent' },
