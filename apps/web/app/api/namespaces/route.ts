@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 构建查询条件
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (type) {
       where.type = type;
@@ -126,8 +126,8 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         description: description || '',
-        type: type as any,
-        ownerId: session.user.id,
+        type,
+        ownerId: session.user.id!,
       },
       include: {
         owner: {
@@ -144,7 +144,7 @@ export async function POST(request: NextRequest) {
     await prisma.namespaceMember.create({
       data: {
         namespaceId: namespace.id,
-        userId: session.user.id,
+        userId: session.user.id!,
         role: 'OWNER',
       },
     });

@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // 构建查询条件
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     // 搜索条件
     if (search) {
@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, slug, description, repositoryUrl, category, tags, namespaceId } = body;
+    const { name, slug, description, category, tags, namespaceId } = body;
 
     // 验证必填字段
     if (!name || !slug) {
@@ -158,12 +158,12 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         description: description || '',
-        repositoryUrl: repositoryUrl || '',
         category: category || 'other',
         tags: tags || [],
-        authorId: session.user.id,
+        authorId: session.user.id!,
         namespaceId: namespaceId || null,
         status: 'DRAFT',
+        version: '1.0.0',
       },
       include: {
         author: {
