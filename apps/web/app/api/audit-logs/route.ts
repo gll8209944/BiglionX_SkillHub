@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth-config';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
+// 强制动态渲染，因为需要访问 headers() 进行身份验证
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/audit-logs
  * 获取审计日志列表（仅管理员）

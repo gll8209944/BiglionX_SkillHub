@@ -2,6 +2,9 @@ import { auth } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
+// 强制动态渲染，因为需要访问 headers() 进行身份验证
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/analytics/personal
  * 获取个人统计数据

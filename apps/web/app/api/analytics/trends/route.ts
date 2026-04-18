@@ -3,6 +3,9 @@ import { auth } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
+// 强制动态渲染，因为需要访问 headers() 进行身份验证
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/analytics/trends
  * 获取趋势数据(Skills 增长和下载量)

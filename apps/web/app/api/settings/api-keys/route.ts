@@ -4,6 +4,9 @@ import { prisma } from '@/lib/prisma';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 import crypto from 'crypto';
 
+// 强制动态渲染，因为需要访问 headers() 进行身份验证
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/settings/api-keys
  * 获取用户的 API 密钥列表
