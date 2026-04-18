@@ -1,7 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Prisma } from '@prisma/client';
 
 // 定义类型
 interface SkillWithRelations {
@@ -47,7 +46,7 @@ export default async function PublicSkillsPage({
   const skip = (page - 1) * limit;
 
   // 构建查询条件
-  const where: Prisma.SkillWhereInput = {
+  const where: Record<string, unknown> = {
     status: 'APPROVED',
     isPublic: true,
   };
@@ -58,8 +57,8 @@ export default async function PublicSkillsPage({
 
   if (search) {
     where.OR = [
-      { name: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
-      { description: { contains: search, mode: 'insensitive' as Prisma.QueryMode } },
+      { name: { contains: search, mode: 'insensitive' } },
+      { description: { contains: search, mode: 'insensitive' } },
       { tags: { has: search } },
     ];
   }
