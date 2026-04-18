@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useToast } from '@/components/ui/ToastContainer';
-import { Key, Plus, Trash2, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Key, Trash2, Copy, Eye, EyeOff, Loader2 } from 'lucide-react';
 
 export default function ApiKeysSettingsPage() {
   const toast = useToast();

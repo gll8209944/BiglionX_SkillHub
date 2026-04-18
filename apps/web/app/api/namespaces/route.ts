@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { auth } from '@/app/api/auth/[...nextauth]/route';
-import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse } from '@/lib/api-response';
+import { auth } from '@/lib/auth-config';
+import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
 /**
  * GET /api/namespaces

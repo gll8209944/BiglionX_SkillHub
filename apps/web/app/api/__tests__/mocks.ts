@@ -53,9 +53,9 @@ jest.mock('@/lib/prisma', () => ({
 
 // Mock auth
 const mockAuthFn = jest.fn();
-jest.mock('@/app/api/auth/[...nextauth]/route', () => ({
+jest.mock('@/lib/auth-config', () => ({
   auth: mockAuthFn,
 }));
 
-import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/lib/auth-config';
 export const mockAuth = auth as jest.MockedFunction<typeof auth>;

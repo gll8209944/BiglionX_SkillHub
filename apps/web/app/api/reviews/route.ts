@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { auth } from '@/lib/auth';
-import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse } from '@/lib/api-response';
+import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
 /**
  * GET /api/reviews

@@ -467,7 +467,7 @@ curl -X POST http://localhost:3000/api/namespaces \
 2. **服务器端**: 使用 `auth()` 函数获取会话
 
 ```typescript
-import { auth } from '@/app/api/auth/[...nextauth]/route';
+import { auth } from '@/lib/auth-config';
 
 const session = await auth();
 if (!session) {

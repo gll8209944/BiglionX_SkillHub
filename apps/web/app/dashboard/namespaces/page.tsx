@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { Plus, Users, Package, MoreVertical, Edit, Trash2, Eye } from 'lucide-react';
+import { Plus, Users, Package, MoreVertical, Eye } from 'lucide-react';
 import { Namespace } from '@/types';
 
 export default function NamespacesPage() {

@@ -1,4 +1,4 @@
-import { signOut } from '@/app/api/auth/[...nextauth]/route';
+import { signOut } from '@/lib/auth-config';
 import { redirect } from 'next/navigation';
 
 export async function POST() {

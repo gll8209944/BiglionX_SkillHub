@@ -1,11 +1,5 @@
-import NextAuth from 'next-auth';
-import GitHub from 'next-auth/providers/github';
+import { auth } from '@/lib/auth-config';
 import { NextResponse } from 'next/server';
-
-const { auth } = NextAuth({
-  providers: [GitHub],
-  session: { strategy: 'jwt' },
-});
 
 export async function middleware() {
   const session = await auth();

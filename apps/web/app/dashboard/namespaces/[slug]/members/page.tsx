@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { ArrowLeft, Users, Plus, Trash2, Shield, UserPlus } from 'lucide-react';
@@ -9,7 +9,6 @@ import { Namespace, NamespaceMember } from '@/types';
 
 export default function NamespaceMembersPage() {
   const params = useParams();
-  const router = useRouter();
   const queryClient = useQueryClient();
   const namespaceSlug = params.slug as string;
 

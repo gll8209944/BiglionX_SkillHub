@@ -1,12 +1,9 @@
 import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
 
-// ============================================
-// 中间件配置（Edge Runtime）
-// 仅用于 session 验证，不使用 Prisma（Edge 不支持 Prisma）
-// ============================================
-
-export const middlewareConfig = {
+// NextAuth 配置（用于 server-side 调用）
+export const { auth, signIn, signOut } = NextAuth({
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID || '',
@@ -19,12 +16,28 @@ export const middlewareConfig = {
     error: '/login/error',
   },
   session: {
-    strategy: 'jwt' as const,
+    strategy: 'jwt',
   },
-  jwt: {
-    maxAge: 30 * 24 * 60 * 60, // 30 days
+  callbacks: {
+    async jwt({ token, profile }) {
+      if (profile) {
+        token.id = profile.id || profile.sub;
+        token.name = profile.name as string | undefined;
+        token.email = profile.email as string | undefined;
+        // GitHub profile 可能包含 avatar_url 或 image
+        const githubProfile = profile as Record<string, unknown>;
+        token.picture = (githubProfile.avatar_url || githubProfile.image) as string | undefined;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (session.user) {
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.image = token.picture as string | undefined;
+      }
+      return session;
+    },
   },
-};
-
-// 用于中间件（Edge Runtime）
-export const { auth: middlewareAuth } = NextAuth(middlewareConfig);
+});
