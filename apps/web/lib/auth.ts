@@ -1,5 +1,8 @@
 import { auth } from '@/lib/auth-config';
 
+// 重新导出 auth 函数
+export { auth };
+
 /**
  * 获取当前会话
  */
