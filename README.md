@@ -1,18 +1,20 @@
-# Skill Hub - AI Agent技能注册中心
+# Skill Hub - AI Agent技能注册中心与全球搜索引擎
 
-> **企业级、可自托管、开源的AI Agent技能管理平台**
-> 类似于"AI时代的npm/Docker Hub"，专门为Skills设计
+> **企业级、可自托管、开源的AI Agent技能管理平台 + 全球Skills搜索引擎**
+> 类似于"AI时代的npm/Docker Hub"，专门为Skills设计，集成智能爬虫自动发现全球Skills
 
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-active-green.svg)]()
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)]()
+[![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)]()
 [![Stars](https://img.shields.io/github/stars/BigLionX/SkillHub?style=social)]()
 
 ---
 
 ## 🌟 项目简介
 
-Skill Hub是一个**独立的企业级AI Agent技能注册中心**，可以：
+Skill Hub是一个**独立的企业级AI Agent技能注册中心 + 全球Skills搜索引擎**，可以：
+
+### 核心功能
 
 - ✅ **独立部署** - Docker一键部署，不依赖其他系统
 - ✅ **完全开源** - Apache 2.0协议，代码完全透明
@@ -22,6 +24,15 @@ Skill Hub是一个**独立的企业级AI Agent技能注册中心**，可以：
 - ✨ **Settings 设置系统** - 个人资料、账户安全、通知管理、API密钥
 - ✨ **Analytics 数据分析** - 平台统计、趋势图表、数据可视化
 - ✨ **现代 UX** - Toast 通知、Skeleton 骨架屏、响应式设计
+
+### 🆕 v2.0 新增：全球Skills搜索引擎
+
+- 🔍 **全面搜索** - 面向全球的数十万个Skills和Agents的搜索引擎
+- 🤖 **智能爬虫** - 每天自动更新，发现新的Skills
+- 📥 **自动索引** - 将搜索到的Skill索引、说明、下载链接加入SkillHub
+- 🌐 **数据聚合** - 整合SkillsMP、Skill Seekers和DeerFlow的数据源
+- 🦌 **DeerFlow 2.0** - 字节跳动超级Agent框架，智能调度和编排
+- 💡 **解决痛点** - 方便开发和用户，避免被海量Skill信息淹没
 
 ---
 
@@ -99,15 +110,26 @@ npm run dev
 - 📈 趋势图表可视化
 - 👤 个人数据分析
 - 💫 热门Skills排行
+- 🔍 全球Skills搜索统计
 
-### 6. 管理后台
+### 6. 全球Skills搜索引擎 (v2.0)
+
+- 🔎 **SkillsMP集成** - 集成SkillsMP的搜索后端
+- 🕷️ **智能爬虫** - 基于Skill Seekers的爬虫引擎
+- 🦌 **DeerFlow 2.0** - 字节跳动SuperAgent编排框架
+- ⏰ **定时任务** - 每天自动扫描GitHub上的SKILL.md仓库
+- 📚 **自动索引** - 将新技能的索引、说明、下载链接添加到数据库
+- 🌍 **全球覆盖** - 支持数十万个Skills的搜索和管理
+- 🔄 **智能调度** - 多Agent协作完成复杂发现和更新任务
+
+### 7. 管理后台
 
 - 👨‍ 审核管理系统
 - 📝 审计日志查看
 - 📊 数据分析面板
 - 👥 用户管理
 
-### 7. CLI工具
+### 8. CLI工具
 
 ```bash
 # 发布技能
@@ -123,7 +145,7 @@ skillhub skill search "replenishment"
 skillhub config set registry https://skillhub.proclaw.cc
 ```
 
-### 8. ClawHub兼容
+### 9. ClawHub兼容
 
 完全兼容ClawHub协议，OpenClaw等Agent可直接使用：
 
@@ -223,10 +245,17 @@ const skills = await store.search('inventory');
 - [x] 性能优化与文档 (Week 9)
 - [x] 功能完善 (Week 10)
 - [x] 🚀 v1.0发布 (Week 11)
+- [ ] 全球搜索引擎集成 (Phase 1)
+- [ ] SkillsMP集成 (Phase 1)
+- [ ] 智能爬虫系统 (Phase 2)
+- [ ] Skill Seekers集成 (Phase 2)
+- [ ] DeerFlow 2.0集成 (Phase 3)
+- [ ] 智能调度流水线 (Phase 3)
+- [ ] 🚀 v2.0发布 (待计划)
 
-**当前版本**: v1.0.0  
-**发布时间**: 2026年4月17日  
-**完成度**: ~95%
+**当前版本**: v2.0.0-dev  
+**发布时间**: 2026年4月18日  
+**完成度**: ~95% (v1.0), v2.0规划中
 
 ---
 
@@ -283,9 +312,9 @@ const skills = await store.search('inventory');
 
 ---
 
-**版本**: v1.0.0  
-**最后更新**: 2026-04-17  
-**发布日期**: 2026年4月17日
+**版本**: v2.0.0-dev  
+**最后更新**: 2026-04-18  
+**发布日期**: 2026年4月18日
 
 ---
 
