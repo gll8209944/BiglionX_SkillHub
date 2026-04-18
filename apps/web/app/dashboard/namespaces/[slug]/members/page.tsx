@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
-import { ArrowLeft, Users, Plus, Trash2, Shield, UserPlus } from 'lucide-react';
+import { ArrowLeft, Users, Trash2, Shield, UserPlus } from 'lucide-react';
 import { Namespace, NamespaceMember } from '@/types';
 
 export default function NamespaceMembersPage() {
@@ -193,7 +193,7 @@ export default function NamespaceMembersPage() {
               <li key={member.userId} className="px-6 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
-                    <div className="flex-shrink-0">
+                    <div className="shrink-0">
                       <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
                         <span className="text-sm font-medium text-gray-700">
                           {member.userId.charAt(0).toUpperCase()}
