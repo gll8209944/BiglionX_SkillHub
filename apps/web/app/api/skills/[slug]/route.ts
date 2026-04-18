@@ -149,3 +149,68 @@ export async function PUT(request: NextRequest, { params }: Props) {
     return errorResponse('更新技能失败', 500);
   }
 }
+
+/**
+ * DELETE /api/skills/[slug]
+ * 通过 slug 或 id 删除(归档)技能
+ */
+export async function DELETE(request: NextRequest, { params }: Props) {
+  try {
+    const session = await auth();
+    
+    if (!session?.user) {
+      return unauthorizedResponse();
+    }
+
+    const { slug } = await params;
+
+    // 支持通过 id 或 slug 查询
+    const where = slug.startsWith('skill_') || slug.length === 36
+      ? { id: slug }
+      : { slug };
+
+    // 查找技能
+    const skill = await prisma.skill.findUnique({
+      where,
+    });
+
+    if (!skill) {
+      return notFoundResponse('技能不存在');
+    }
+
+    // 检查权限（只有作者或管理员可以删除）
+    if (skill.authorId !== session.user.id) {
+      // TODO: 添加管理员检查
+      return forbiddenResponse('没有权限删除此技能');
+    }
+
+    // 归档技能（软删除）
+    const archivedSkill = await prisma.skill.update({
+      where: { id: skill.id },
+      data: {
+        status: 'ARCHIVED',
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        namespace: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    return successResponse(archivedSkill);
+  } catch (error) {
+    console.error('删除技能失败:', error);
+    return errorResponse('删除技能失败', 500);
+  }
+}
