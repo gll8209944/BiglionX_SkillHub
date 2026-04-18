@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await auth();
     
-    if (!session?.user) {
+    if (!session?.user?.id) {
       return unauthorizedResponse();
     }
 
@@ -143,9 +143,9 @@ export async function POST(request: NextRequest) {
 
       // 检查用户是否是命名空间成员或所有者
       const isMember = namespace.members.some(
-        (member: any) => member.userId === session.user!.id
+        (member) => member.userId === session.user?.id
       );
-      const isOwner = namespace.ownerId === session.user!.id;
+      const isOwner = namespace.ownerId === session.user?.id;
 
       if (!isMember && !isOwner) {
         return errorResponse('没有权限在此命名空间中创建技能', 403);
@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
         description: description || '',
         category: category || 'other',
         tags: tags || [],
-        authorId: session.user.id!,
+        authorId: session.user.id,
         namespaceId: namespaceId || null,
         status: 'DRAFT',
         version: '1.0.0',
