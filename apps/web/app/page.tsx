@@ -1,6 +1,51 @@
 import Link from 'next/link';
+import { prisma } from '@/lib/prisma';
+import { redirect } from 'next/navigation';
 
-export default function Home() {
+interface SearchParams {
+  category?: string;
+}
+
+async function getRecentSkills() {
+  try {
+    const skills = await prisma.skill.findMany({
+      where: {
+        isPublic: true,
+        status: 'APPROVED',
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 12,
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        category: true,
+        tags: true,
+        starCount: true,
+        downloadCount: true,
+        qualityScore: true,
+        source: true,
+        authorName: true,
+        createdAt: true,
+      },
+    });
+    return skills;
+  } catch (error) {
+    console.error('Failed to fetch skills:', error);
+    return [];
+  }
+}
+
+export default async function Home({ searchParams }: { searchParams: SearchParams }) {
+  // 如果有 category 参数，重定向到 skills 页面
+  if (searchParams.category) {
+    redirect(`/skills?category=${searchParams.category}`);
+  }
+
+  const recentSkills = await getRecentSkills();
   return (
     <main className="flex min-h-screen flex-col">
       {/* 顶部导航 */}
@@ -105,6 +150,91 @@ export default function Home() {
           </div>
         </div>
       </div>
+
+      {/* v2.0: 最新 Skills 展示 */}
+      {recentSkills.length > 0 && (
+        <section className="w-full py-16 bg-white">
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <h2 className="text-4xl font-bold text-gray-900 mb-4">
+                🌍 全球热门 Skills
+              </h2>
+              <p className="text-lg text-gray-600">
+                从 SkillsMP 和 GitHub 自动抓取的优质 AI Agent Skills
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {recentSkills.map((skill) => (
+                <Link
+                  key={skill.id}
+                  href={`/skills/${skill.slug}`}
+                  className="group p-6 bg-linear-to-br from-white to-gray-50 rounded-2xl border border-gray-200 shadow-md hover:shadow-xl transition-all duration-200 hover:-translate-y-1"
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+                        {skill.name}
+                      </h3>
+                      {skill.source && (
+                        <span className="inline-block px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-md mb-2">
+                          {skill.source === 'github' ? '🐙 GitHub' : skill.source === 'skillsmp' ? '📦 SkillsMP' : skill.source}
+                        </span>
+                      )}
+                    </div>
+                    {skill.qualityScore > 0 && (
+                      <div className="flex items-center gap-1">
+                        <span className="text-yellow-500">⭐</span>
+                        <span className="text-sm font-semibold text-gray-700">{skill.qualityScore}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                    {skill.description || 'No description available'}
+                  </p>
+
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <div className="flex items-center gap-4">
+                      {skill.starCount > 0 && (
+                        <span>⭐ {skill.starCount}</span>
+                      )}
+                      {skill.downloadCount > 0 && (
+                        <span>📥 {skill.downloadCount}</span>
+                      )}
+                    </div>
+                    <span className="text-xs">
+                      {skill.category}
+                    </span>
+                  </div>
+
+                  {skill.tags && skill.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      {skill.tags.slice(0, 3).map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded-md"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+
+            <div className="text-center mt-12">
+              <Link
+                href="/skills"
+                className="inline-block px-8 py-3 text-lg font-semibold text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                浏览全部 Skills →
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 页脚 */}
       <footer className="w-full py-6 border-t border-gray-200 bg-white">

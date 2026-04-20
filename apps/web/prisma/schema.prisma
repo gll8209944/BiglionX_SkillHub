@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -14,8 +13,11 @@ model User {
   name            String?
   image           String?
   emailVerified   DateTime?
+  role            UserRole          @default(USER)
+  isDisabled      Boolean           @default(false)
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
+  password        String?
   accounts        Account[]
   apiKeys         ApiKey[]
   auditLogs       AuditLog[]
@@ -23,42 +25,67 @@ model User {
   ownedNamespaces Namespace[]       @relation("NamespaceOwner")
   reviews         Review[]
   sessions        Session[]
+  feedbacks       SkillFeedback[]
   skills          Skill[]
 
   @@map("users")
 }
 
 model Skill {
-  id            String         @id @default(uuid())
-  name          String
-  description   String
-  version       String
-  category      String
-  tags          String[]
-  screenshots   String[]
-  status        SkillStatus    @default(DRAFT)
-  authorId      String
-  createdAt     DateTime       @default(now())
-  currency      String         @default("CNY")
-  downloadCount Int            @default(0)
-  iconUrl       String?
-  isPublic      Boolean        @default(false)
-  namespaceId   String?
-  packageUrl    String?
-  price         Decimal        @default(0) @db.Decimal(10, 2)
-  rating        Float          @default(0)
-  readme        String?
-  reviewCount   Int            @default(0)
-  slug          String         @unique
-  updatedAt     DateTime       @updatedAt
-  reviews       Review[]
-  versions      SkillVersion[]
-  author        User           @relation(fields: [authorId], references: [id])
-  namespace     Namespace?     @relation(fields: [namespaceId], references: [id])
+  id               String          @id @default(uuid())
+  name             String
+  description      String
+  version          String
+  category         String
+  tags             String[]
+  screenshots      String[]
+  status           SkillStatus     @default(DRAFT)
+  authorId         String
+  createdAt        DateTime        @default(now())
+  currency         String          @default("CNY")
+  downloadCount    Int             @default(0)
+  iconUrl          String?
+  isPublic         Boolean         @default(false)
+  namespaceId      String?
+  packageUrl       String?
+  price            Decimal         @default(0) @db.Decimal(10, 2)
+  rating           Float           @default(0)
+  readme           String?
+  reviewCount      Int             @default(0)
+  slug             String          @unique
+  updatedAt        DateTime        @updatedAt
+  authorName       String?
+  authorUrl        String?
+  compatibility    Json?
+  confidence       Float           @default(70)
+  dependencies     Json?
+  documentationUrl String?
+  languages        String[]
+  lastSyncedAt     DateTime?
+  permissions      Json?
+  qualityScore     Float           @default(0)
+  repositoryUrl    String?
+  source           String?
+  sourceId         String?
+  sourceUrl        String?
+  starCount        Int             @default(0)
+  subcategory      String?
+  syncStatus       String?
+  embedding        Json?           // OpenAI embeddings (存储为JSON数组，向后兼容)
+  embeddingVector  Float[]         // pgvector格式 (维度1536，用于高性能向量搜索)
+  reviews          Review[]
+  feedbacks        SkillFeedback[]
+  versions         SkillVersion[]
+  author           User            @relation(fields: [authorId], references: [id])
+  namespace        Namespace?      @relation(fields: [namespaceId], references: [id])
 
   @@index([slug])
   @@index([category])
   @@index([status])
+  @@index([source])
+  @@index([sourceId])
+  @@index([qualityScore(sort: Desc)])
+  @@index([updatedAt(sort: Desc)])
   @@map("skills")
 }
 
@@ -224,6 +251,88 @@ model ApiKey {
   @@map("api_keys")
 }
 
+model SyncLog {
+  id           String    @id @default(uuid())
+  source       String
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+  totalCount   Int       @default(0)
+  successCount Int       @default(0)
+  failedCount  Int       @default(0)
+  status       String    @default("running")
+  errorMessage String?
+  metadata     Json?
+
+  @@index([source])
+  @@index([startedAt(sort: Desc)])
+  @@map("sync_logs")
+}
+
+model CrawlerTask {
+  id           String    @id @default(uuid())
+  taskType     String
+  target       String
+  status       String    @default("pending")
+  priority     Int       @default(1)
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  result       Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("crawler_tasks")
+}
+
+model SkillFeedback {
+  id                   String   @id @default(uuid())
+  skillId              String
+  userId               String?
+  feedbackType         String
+  currentCategory      String?
+  suggestedCategory    String?
+  currentSubcategory   String?
+  suggestedSubcategory String?
+  reason               String
+  status               String   @default("pending")
+  adminNotes           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  skill                Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user                 User?    @relation(fields: [userId], references: [id])
+
+  @@index([skillId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_feedbacks")
+}
+
+model CrawlerConfig {
+  id          String   @id @default(uuid())
+  configKey   String   @unique
+  configValue Json
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configKey])
+  @@map("crawler_configs")
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
+}
+
 enum SkillStatus {
   DRAFT
   PENDING_REVIEW
@@ -255,4 +364,10 @@ enum ReviewStatus {
   REJECTED
   REQUIRES_CHANGES
   ARCHIVED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
 }

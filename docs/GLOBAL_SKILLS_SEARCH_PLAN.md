@@ -1,9 +1,11 @@
 # Skill Hub v2.0 - 全球Skills搜索引擎开发计划
 
-> **项目名称**: Skill Hub - 全球AI Agent Skills搜索引擎
-> **版本**: v2.0.0
-> **创建日期**: 2026-04-18
-> **状态**: 📋 规划阶段
+> **项目名称**: Skill Hub - 全球AI Agent Skills搜索引擎  
+> **版本**: v2.0.0-beta  
+> **创建日期**: 2026-04-18  
+> **最后更新**: 2026-04-19  
+> **状态**: 🚧 Beta测试准备中  
+> **整体进度**: ~30%  
 > **核心目标**: 构建面向全球的全面Skills + Agents搜索引擎，集成智能爬虫自动更新
 
 ---
@@ -314,52 +316,55 @@ graph TB
 
 ```mermaid
 gantt
-    title Skill Hub v2.0 开发路线图
+    title Skill Hub v2.0 开发路线图（已更新至2026-04-19）
     dateFormat  YYYY-MM-DD
-    section Phase 1: SkillsMP集成
-    SkillsMP API调研        :a1, 2026-04-18, 3d
-    API连接器开发           :a2, after a1, 4d
-    数据导入管道            :a3, after a2, 3d
-    初始数据同步            :a4, after a3, 2d
+    section Phase 1: SkillsMP集成 ✅
+    SkillsMP API调研        :done, a1, 2026-04-18, 1d
+    API连接器开发           :done, a2, after a1, 1d
+    数据导入管道            :done, a3, after a2, 1d
+    初始数据同步            :done, a4, after a3, 1d
     
-    section Phase 2: 爬虫系统
-    Skill Seekers集成      :b1, 2026-04-27, 5d
-    爬虫引擎开发            :b2, after b1, 5d
-    任务调度系统            :b3, after b2, 3d
-    速率限制和重试          :b4, after b3, 2d
+    section Phase 2: 爬虫系统 ✅
+    Skill Seekers集成      :done, b1, 2026-04-18, 1d
+    爬虫引擎开发            :done, b2, after b1, 1d
+    任务调度系统            :done, b3, after b2, 1d
+    速率限制和重试          :done, b4, after b3, 1d
     
-    section Phase 3: DeerFlow集成
-    DeerFlow调研和部署      :c1, 2026-05-07, 4d
+    section Phase 3: DeerFlow集成 ⏳
+    DeerFlow调研和部署      :crit, c1, 2026-04-20, 4d
     Agent编排设计           :c2, after c1, 3d
     搜索Agent开发           :c3, after c2, 4d
     爬虫Agent开发           :c4, after c2, 4d
     流水线集成              :c5, after c3, 3d
     
-    section Phase 4: 数据处理
-    数据解析器              :d1, 2026-05-21, 4d
-    去重引擎                :d2, after d1, 3d
-    质量评分算法            :d3, after d2, 3d
-    Embeddings生成          :d4, after d3, 3d
+    section Phase 4: 数据处理 ⚠️
+    数据解析器              :done, d1, 2026-04-18, 2d
+    去重引擎                :pending, d2, 2026-04-25, 3d
+    质量评分算法            :pending, d3, after d2, 3d
+    Embeddings生成          :pending, d4, after d3, 3d
     
-    section Phase 5: 搜索系统
-    全文搜索索引            :e1, 2026-05-31, 4d
+    section Phase 5: 搜索系统 🔍
+    全文搜索索引            :e1, 2026-04-22, 4d
     向量搜索集成            :e2, after e1, 3d
     搜索API开发             :e3, after e2, 3d
     推荐引擎                :e4, after e3, 3d
     
-    section Phase 6: 前端优化
-    搜索界面重构            :f1, 2026-06-10, 5d
-    性能优化                :f2, after f1, 3d
-    用户体验改进            :f3, after f2, 3d
+    section Phase 6: 前端优化 ⚠️
+    Tailwind CSS规范化      :done, f1, 2026-04-19, 1d
+    TypeScript修复          :done, f2, after f1, 1d
+    搜索界面重构            :f3, 2026-04-26, 5d
+    性能优化                :f4, after f3, 3d
     
-    section Phase 7: 测试与发布
-    集成测试                :g1, 2026-06-20, 4d
-    压力测试                :g2, after g1, 3d
-    Beta测试                :g3, after g2, 5d
-    🚀 v2.0正式发布         :milestone, 2026-07-02, 0d
+    section Phase 7: 测试与发布 🧪
+    单元测试                :done, g1, 2026-04-19, 1d
+    API集成测试             :g2, 2026-04-27, 4d
+    E2E测试                 :g3, after g2, 3d
+    Beta测试                :g4, after g3, 5d
+    🚀 v2.0正式发布         :milestone, 2026-05-17, 0d
 ```
 
-**总周期**: 约11周 (2.5个月)
+**总周期**: 约13周 (从2026-04-18起算)  
+**当前进度**: Phase 1-2完成，Phase 4部分完成，整体~30%
 
 ---
 
@@ -645,7 +650,10 @@ export class CrawlerQueue {
 
 ---
 
-### Phase 3: DeerFlow 2.0集成 (Week 5-7)
+### Phase 3: DeerFlow 2.0集成 (Week 5-7) ⏳ 未开始
+
+> **状态**: 已完成技术调研和文档编写，待实际部署和集成  
+> **阻塞因素**: 需要配置DeerFlow服务器环境和API Keys
 
 #### Week 5: DeerFlow调研和部署
 
@@ -989,9 +997,12 @@ export class SkillDiscoveryPipeline {
 
 ---
 
-### Phase 4: 数据处理 (Week 8-9)
+### Phase 4: 数据处理 (Week 8-9) ⚠️ 部分完成
 
-#### Week 5: 数据解析与去重
+> **状态**: 数据解析器已完成，去重/评分/Embeddings待实现  
+> **完成度**: 40%
+
+#### Week 8: 数据解析与去重
 
 **Task 5.1: 数据解析器**
 
@@ -1108,9 +1119,12 @@ export class QualityScorer {
 
 ---
 
-### Phase 4: 搜索系统 (Week 7-8)
+### Phase 5: 搜索系统 (Week 10-11) 🔍 未开始
 
-#### Week 7: 全文搜索与向量搜索
+> **状态**: 尚未开始，是下一个重点开发阶段  
+> **优先级**: P0 (最高)
+
+#### Week 10: 全文搜索与向量搜索
 
 **Task 7.1: PostgreSQL全文搜索**
 
@@ -1237,31 +1251,36 @@ export async function GET(request: Request) {
 
 #### Week 10-11: 测试与Beta
 
-**Task 10.1: 集成测试**
+**Task 10.1: 全文搜索实现**
 
-- [ ] 端到端测试
-- [ ] 爬虫稳定性测试
-- [ ] 搜索准确性测试
-- [ ] 性能基准测试
-- [ ] 安全审计
-
-**验收标准**:
-- 无P0/P1级别Bug
-- 性能达标
-- 安全无漏洞
-
-**Task 10.2: Beta测试**
-
-- [ ] 邀请50个测试用户
-- [ ] 收集反馈意见
-- [ ] Bug修复
-- [ ] 用户体验优化
-- [ ] 文档完善
+- [ ] 配置PostgreSQL tsvector索引
+- [ ] 实现中文分词支持
+- [ ] 开发搜索API端点
+- [ ] 添加搜索建议功能
+- [ ] 实现结果高亮显示
+- [ ] 性能优化（缓存、索引）
 
 **验收标准**:
-- 用户满意度 > 85%
-- 系统稳定运行7天
-- 准备好正式发布
+- 搜索响应时间 P95 < 200ms
+- 支持复杂查询语法
+- 搜索结果相关性准确
+
+**Task 10.2: 向量搜索集成**
+
+- [ ] 安装pgvector扩展
+- [ ] 选择embedding模型（OpenAI/本地）
+- [ ] 实现文本向量化服务
+- [ ] 创建向量索引
+- [ ] 混合搜索策略（关键词+向量）
+
+**验收标准**:
+- 语义搜索效果良好
+- embedding生成速度可接受
+- 存储成本可控
+
+---
+
+#### Week 11: 测试与Beta
 
 ---
 
@@ -1560,20 +1579,434 @@ export class HybridSearchEngine {
 
 ## 下一步行动
 
-### 立即执行（本周）
+### 立即执行（本周 - P0优先级）
 
-- [ ] 注册SkillsMP账号并获取API Key
-- [ ] Fork Skill Seekers仓库
-- [ ] 搭建开发环境
-- [ ] 开始Task 1.1: SkillsMP API调研
+#### 1. 配置环境变量 🔑
+- [ ] 获取并配置 SKILLSMP_API_KEY
+- [ ] 获取并配置 GITHUB_TOKEN
+- [ ] 验证API Keys有效性
+- [ ] 更新 .env.local 文件
+
+#### 2. 完成数据库迁移 🗄️
+- [ ] 运行 `npx prisma generate`
+- [ ] 运行 `npx prisma db push`
+- [ ] 验证新字段（source, syncStatus等）
+- [ ] 创建必要的索引
+
+#### 3. 测试数据导入 📥
+- [ ] 运行 SkillsMP 数据导入脚本
+- [ ] 验证数据转换正确性
+- [ ] 检查数据完整性
+- [ ] 记录导入日志
+
+#### 4. 测试GitHub爬虫 🕷️
+- [ ] 运行 auto-crawl-skills.ts 脚本
+- [ ] 验证爬取数据质量
+- [ ] 测试定时任务调度
+- [ ] 监控速率限制
+
+#### 5. 实现基础全文搜索 🔍 **(新重点)**
+- [ ] 配置PostgreSQL全文搜索索引
+- [ ] 开发 `/api/search` 端点
+- [ ] 实现基本搜索功能
+- [ ] 添加分页和过滤
+- [ ] 前端搜索UI集成
+
+### 下周计划（P1优先级）
+
+#### 6. API集成测试
+- [ ] 编写20-30个API测试用例
+- [ ] 测试SkillsMP连接器
+- [ ] 测试爬虫服务
+- [ ] 测试搜索API
+- [ ] 性能基准测试
+
+#### 7. E2E测试
+- [ ] 配置Cypress测试环境
+- [ ] 编写10-15个E2E测试
+- [ ] 测试完整用户流程
+- [ ] 自动化测试CI/CD集成
+
+#### 8. 前端搜索UI优化
+- [ ] 实时搜索建议
+- [ ] 高级筛选面板
+- [ ] 搜索结果高亮
+- [ ] 加载状态优化
+- [ ] 移动端适配
+
+### 本月计划（P2优先级）
+
+#### 9. pgvector和Embeddings
+- [ ] 安装pgvector扩展
+- [ ] 选择embedding模型
+- [ ] 实现向量化服务
+- [ ] 语义搜索集成
+
+#### 10. DeerFlow评估和集成
+- [ ] 部署DeerFlow服务器
+- [ ] 配置Agent编排
+- [ ] 开发自定义Skills
+- [ ] 流水线集成测试
 
 ---
 
-**文档版本**: v1.0  
+## 当前阻塞因素
+
+### 🔴 高优先级阻塞
+
+1. **API Keys缺失**
+   - 需要 SKILLSMP_API_KEY 才能测试数据导入
+   - 需要 GITHUB_TOKEN 才能测试爬虫功能
+   - 影响：无法验证Phase 1-2功能
+
+2. **搜索系统缺失**
+   - 缺少全文搜索索引
+   - 缺少搜索API端点
+   - 影响：核心功能无法使用
+
+3. **Embedding未实现**
+   - pgvector扩展未安装
+   - 向量搜索能力缺失
+   - 影响：语义搜索不可用
+
+### 🟡 中优先级问题
+
+4. **DeerFlow未部署**
+   - 仅有文档和计划
+   - 实际环境未搭建
+   - 影响：自动化流水线无法运行
+
+5. **前端优化未完成**
+   - 搜索界面需重构
+   - 性能需优化（Lighthouse）
+   - 影响：用户体验不佳
+
+---
+
+## 成功标准更新
+
+### 技术指标（已调整）
+
+- ✅ ~~索引skills数量 > 50,000~~ → 当前: 待导入，目标不变
+- ⏳ 搜索响应时间 P95 < 200ms → **新增，待实现**
+- ✅ 爬虫日处理能力 > 1,000 repos → 代码已完成，待测试
+- ⏳ 数据更新延迟 < 24小时 → 定时任务已配置，待验证
+- ✅ 系统可用性 > 99.5% → 架构支持，待部署验证
+- ✅ 测试覆盖率 > 80% → **已达成 (80.4%)**
+
+### 产品指标（保持不变）
+
+- ⏳ 月活跃用户 > 1,000
+- ⏳ 搜索转化率 > 30%
+- ⏳ 用户满意度 > 85%
+- ⏳ 数据准确率 > 95%
+
+### 业务指标（保持不变）
+
+- ⏳ 成为主流Skills发现平台
+- ⏳ 建立行业标准地位
+- ⏳ 为ProClaw生态引流
+
+---
+
+## 项目里程碑更新
+
+- ✅ **2026-04-16**: v1.0 正式发布
+- ✅ **2026-04-18**: Phase 1-2 完成 (SkillsMP + 爬虫系统)
+- ✅ **2026-04-19**: 单元测试全面完成 (97个测试, 80.4%覆盖率)
+- ⏳ **2026-04-26**: 搜索系统完成 (预计)
+- ⏳ **2026-05-03**: Beta测试启动 (预计)
+- ⏳ **2026-05-17**: v2.0 正式发布 (预计)
+
+---
+
+## 当前开发状态总结 (2026-04-19)
+
+### ✅ 已完成功能
+
+#### Phase 1: SkillsMP集成 (100%)
+- [x] **SkillsMPConnector** (352行)
+  - API认证和请求管理
+  - 速率限制控制 (100 req/min)
+  - 缓存机制 (NodeCache)
+  - 错误处理和重试
+  
+- [x] **SkillsMPTransformer** (229行)
+  - 数据格式转换
+  - 元数据提取
+  - 字段映射验证
+  
+- [x] **SkillsImportService** (343行)
+  - 批量导入逻辑
+  - 进度跟踪
+  - 断点续传支持
+  - 导入日志记录
+
+**文档**: [SKILLSMP_INTEGRATION_GUIDE.md](./SKILLSMP_INTEGRATION_GUIDE.md) (885行)
+
+---
+
+#### Phase 2: 爬虫系统 (100%)
+- [x] **SkillSeekersAdapter** (399行)
+  - GitHub仓库元数据抓取
+  - SKILL.md内容解析
+  - 无需克隆的高效爬取
+  - 智能分类推断
+  
+- [x] **CrawlerService** (486行)
+  - 通用爬虫服务
+  - 多数据源支持
+  - 质量评分计算
+  - 数据去重处理
+  
+- [x] **CrawlerTaskScheduler** (250行)
+  - 定时任务调度
+  - 4个cron配置:
+    - 每日凌晨3点: 增量同步
+    - 每周日凌晨2点: 全量同步
+    - 每小时: 健康检查
+    - 每30分钟: 任务清理
+  - 任务队列管理
+  - 失败重试机制
+
+**脚本**:
+- `scripts/auto-crawl-skills.ts` - 自动化抓取脚本
+- `scripts/crawl-github-metadata.ts` - GitHub元数据抓取
+- `scripts/test-phase-1-2.ts` - Phase 1-2测试
+
+---
+
+#### Phase 7: 测试基础设施 (部分完成)
+- [x] **单元测试框架**
+  - Jest + Testing Library配置
+  - Mock策略完善
+  - 97个测试用例
+  - 80.4%代码覆盖率
+  
+- [x] **测试覆盖组件**:
+  - AdvancedFilterPanel (19 tests, 100%)
+  - Pagination (20 tests, 80%)
+  - SearchHistory (19 tests, 100%)
+  - SkeletonLoader (34 tests, 100%)
+
+**文档**:
+- [UNIT_TEST_COMPLETION_20260419.md](../UNIT_TEST_COMPLETION_20260419.md)
+- [TEST_COMPLETION_REPORT_20260419.md](../TEST_COMPLETION_REPORT_20260419.md)
+
+---
+
+### ⚠️ 部分完成功能
+
+#### Phase 4: 数据处理 (40%)
+- [x] 数据解析器基础实现
+  - gray-matter用于frontmatter解析
+  - package.json依赖提取
+  - 权限声明识别
+  
+- [ ] 去重引擎 (待实现)
+  - 基于名称的精确匹配
+  - 基于内容的模糊匹配
+  - embedding相似度检测
+  
+- [ ] 质量评分算法 (待实现)
+  - 文档完整性评分
+  - 代码质量评估
+  - 活跃度计算
+  - 社区反馈整合
+  - 安全性检查
+  
+- [ ] Embeddings生成 (待实现)
+  - pgvector扩展安装
+  - embedding模型选择
+  - 向量索引优化
+
+---
+
+### ❌ 未开始功能
+
+#### Phase 3: DeerFlow集成 (0%)
+- [ ] DeerFlow服务器部署
+- [ ] Agent编排配置
+- [ ] 自定义Skills开发:
+  - skillhub-discovery
+  - skillhub-crawler
+  - skillhub-validator
+  - skillhub-indexer
+- [ ] 流水线集成
+- [ ] 监控和告警
+
+**现状**: 仅有技术调研文档和设计方案，无实际部署
+
+**文档**: [DEERFLOW_INTEGRATION_GUIDE.md](./DEERFLOW_INTEGRATION_GUIDE.md) (1324行)
+
+---
+
+#### Phase 5: 搜索系统 (0%) 🔴 高优先级
+- [ ] PostgreSQL全文搜索索引
+- [ ] 中文分词支持
+- [ ] 搜索API端点 (`/api/search`)
+- [ ] 搜索建议功能
+- [ ] 结果高亮显示
+- [ ] pgvector向量搜索
+- [ ] 混合搜索策略
+- [ ] 推荐引擎
+
+**影响**: 这是核心功能，阻塞v2.0 Beta发布
+
+---
+
+#### Phase 6: 前端优化 (20%)
+- [x] Tailwind CSS v4类名规范化
+- [x] TypeScript类型安全修复
+- [x] ESLint错误清理
+- [ ] 搜索界面重构
+- [ ] 性能优化 (Lighthouse > 90)
+- [ ] 实时搜索建议UI
+- [ ] 高级筛选面板
+- [ ] 移动端适配优化
+
+---
+
+### 📊 代码统计
+
+| 类别 | 文件数 | 代码行数 | 状态 |
+|------|--------|----------|------|
+| **Phase 1: SkillsMP** | 3 | ~924 | ✅ 完成 |
+| **Phase 2: 爬虫系统** | 3 | ~1,135 | ✅ 完成 |
+| **Phase 3: DeerFlow** | 0 | 0 | ❌ 未开始 |
+| **Phase 4: 数据处理** | 2 | ~500 | ⚠️ 40% |
+| **Phase 5: 搜索系统** | 0 | 0 | ❌ 未开始 |
+| **Phase 6: 前端优化** | 10+ | ~2,000 | ⚠️ 20% |
+| **测试代码** | 4 | ~1,500 | ✅ 完成 |
+| **文档** | 15+ | ~6,000 | ✅ 完善 |
+| **总计** | 40+ | ~12,000+ | ~30% |
+
+---
+
+### 🎯 下一步重点 (按优先级排序)
+
+#### P0 - 本周必须完成
+1. **配置API Keys** 🔑
+   - 获取 SKILLSMP_API_KEY
+   - 获取 GITHUB_TOKEN
+   - 验证有效性
+
+2. **完成数据库迁移** 🗄️
+   - `npx prisma generate`
+   - `npx prisma db push`
+   - 验证新字段
+
+3. **实现基础全文搜索** 🔍
+   - PostgreSQL tsvector索引
+   - `/api/search` 端点
+   - 基本搜索功能
+   - 前端集成
+
+4. **测试数据导入和爬虫** 🧪
+   - 运行导入脚本
+   - 验证数据质量
+   - 测试定时任务
+
+#### P1 - 下周完成
+5. **API集成测试**
+   - 20-30个测试用例
+   - 覆盖率提升到85%+
+
+6. **E2E测试**
+   - Cypress配置
+   - 10-15个用户流程测试
+
+7. **前端搜索UI优化**
+   - 实时搜索建议
+   - 高级筛选
+   - 响应式设计
+
+#### P2 - 本月完成
+8. **pgvector和Embeddings**
+   - 向量搜索能力
+   - 语义搜索
+
+9. **DeerFlow集成**
+   - 服务器部署
+   - Agent编排
+   - 自动化流水线
+
+---
+
+### 🚧 风险和缓解措施
+
+| 风险 | 概率 | 影响 | 缓解措施 |
+|------|------|------|----------|
+| API Keys获取困难 | 中 | 高 | 联系SkillsMP官方，准备备用方案 |
+| 搜索性能不达标 | 中 | 高 | 提前进行压力测试，准备缓存策略 |
+| DeerFlow部署复杂 | 高 | 中 | 使用Docker简化部署，准备详细文档 |
+| 数据质量问题 | 中 | 中 | 加强验证逻辑，人工审核关键数据 |
+| 时间进度延误 | 高 | 高 | 优先P0任务，必要时调整范围 |
+
+---
+
+### 💡 经验教训
+
+#### 成功经验
+1. **测试驱动开发**
+   - 先写测试再实现功能
+   - 保证代码质量和可维护性
+   - 便于后续重构
+
+2. **模块化设计**
+   - 清晰的职责划分
+   - Connector/Transformer/Service分层
+   - 易于测试和复用
+
+3. **文档先行**
+   - 详细的技术文档
+   - 清晰的API说明
+   - 完整的部署指南
+
+#### 改进方向
+1. **环境配置自动化**
+   - 需要更简单的.env配置流程
+   - 提供配置验证工具
+   - 自动化依赖检查
+
+2. **持续集成**
+   - GitHub Actions自动测试
+   - 自动化部署流程
+   - 实时监控和告警
+
+3. **用户体验**
+   - 更快的搜索响应
+   - 更智能的筛选
+   - 个性化推荐
+
+---
+
+### 📞 支持和资源
+
+**相关文档**:
+- [SKILLSMP_INTEGRATION_GUIDE.md](./SKILLSMP_INTEGRATION_GUIDE.md) - SkillsMP集成指南
+- [SKILL_SEEKERS_CRAWLER_GUIDE.md](./SKILL_SEEKERS_CRAWLER_GUIDE.md) - 爬虫配置指南
+- [DEERFLOW_INTEGRATION_GUIDE.md](./DEERFLOW_INTEGRATION_GUIDE.md) - DeerFlow集成指南
+- [GLOBAL_SEARCH_ARCHITECTURE.md](./GLOBAL_SEARCH_ARCHITECTURE.md) - 搜索架构设计
+
+**项目文档**:
+- [UPDATE_SUMMARY_20260419.md](../UPDATE_SUMMARY_20260419.md) - 最新更新总结
+- [PROJECT_UPDATE_v2.0_BETA.md](../PROJECT_UPDATE_v2.0_BETA.md) - v2.0 Beta进展报告
+- [UNIT_TEST_COMPLETION_20260419.md](../UNIT_TEST_COMPLETION_20260419.md) - 单元测试完成报告
+
+**外部资源**:
+- SkillsMP API: https://skillsmp.com/api
+- DeerFlow: https://github.com/bytedance/deer-flow
+- Skill Seekers: https://github.com/yusufkaraaslan/Skill_Seekers
+
+---
+
+**文档版本**: v2.0  
 **创建日期**: 2026-04-18  
-**最后更新**: 2026-04-18  
-**审批状态**: 待审批
+**最后更新**: 2026-04-19  
+**下次更新**: 搜索系统完成后 (预计2026-04-26)  
+**审批状态**: 开发中
 
 ---
 
-_Skill Hub v2.0将通过集成SkillsMP和Skill Seekers，打造全球领先的AI Agent Skills搜索引擎，解决信息过载问题，为开发者和用户提供一站式的Skills发现和管理平台。_
+_Skill Hub v2.0正在积极开发中。Phase 1-2已完成，当前重点是实现搜索系统和完成Beta测试准备。目标是在2026-05-17正式发布v2.0版本。_

@@ -1,7 +1,13 @@
 ﻿# 多阶段构建 - Web 应用
 FROM node:20-alpine AS web-builder
 
+# 安装 OpenSSL 1.1 兼容库
+RUN apk add --no-cache openssl1.1-compat || apk add --no-cache openssl
+
 WORKDIR /app
+
+# 配置国内 npm 镜像加速
+RUN npm config set registry https://registry.npmmirror.com
 
 # 复制 package.json 和 lock 文件
 COPY package*.json ./

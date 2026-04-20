@@ -1,6 +1,18 @@
 // 学习更多: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// Polyfill for Web APIs (needed for NextRequest/NextResponse)
+import { Request as NodeFetchRequest, Response as NodeFetchResponse } from 'node-fetch';
+
+/* eslint-disable @typescript-eslint/no-explicit-any, no-var */
+if (typeof global.Request === 'undefined') {
+  (global as any).Request = NodeFetchRequest;
+}
+if (typeof global.Response === 'undefined') {
+  (global as any).Response = NodeFetchResponse;
+}
+/* eslint-enable @typescript-eslint/no-explicit-any, no-var */
+
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
   useRouter() {

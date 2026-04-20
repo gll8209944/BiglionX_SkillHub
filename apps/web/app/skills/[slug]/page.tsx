@@ -2,6 +2,34 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import FeedbackButton from '@/components/skills/FeedbackButton';
+import SkillCard from '@/components/ui/SkillCard';
+
+// Subcategory label mapping
+const subcategoryLabels: Record<string, string> = {
+  'ai_agent': 'AI代理',
+  'llm_tools': 'LLM工具',
+  'ml_framework': 'ML框架',
+  'computer_vision': '计算机视觉',
+  'speech_audio': '语音处理',
+  'workflow_automation': '工作流自动化',
+  'rpa_bot': 'RPA机器人',
+  'task_scheduling': '任务调度',
+  'database': '数据库',
+  'data_viz': '数据可视化',
+  'web_scraping': '网络爬虫',
+  'mobile_app': '移动应用',
+  'frontend': '前端开发',
+  'ecommerce': '电商',
+  'dev_tools': '开发工具',
+  'testing': '测试工具',
+  'documentation': '文档工具',
+  'cli_tools': 'CLI工具',
+};
+
+function getSubcategoryLabel(subcategory: string): string {
+  return subcategoryLabels[subcategory] || subcategory;
+}
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -30,7 +58,22 @@ export default async function PublicSkillDetailPage({ params }: Props) {
 
   const skill = await prisma.skill.findUnique({
     where: { slug },
-    include: {
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      category: true,
+      subcategory: true,
+      confidence: true,
+      tags: true,
+      downloadCount: true,
+      rating: true,
+      reviewCount: true,
+      readme: true,
+      repositoryUrl: true,
+      packageUrl: true,
+      createdAt: true,
       author: {
         select: {
           id: true,
@@ -49,13 +92,29 @@ export default async function PublicSkillDetailPage({ params }: Props) {
         orderBy: {
           createdAt: 'desc',
         },
-        take: 10,
+        take: 5,
       },
     },
   });
 
   if (!skill) {
     notFound();
+  }
+
+  // 获取相关Skills（基于语义搜索）
+  let relatedSkills: any[] = [];
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/skills/${skill.id}/related?limit=5`,
+      { cache: 'no-store' }
+    );
+    
+    if (response.ok) {
+      const data = await response.json();
+      relatedSkills = data.relatedSkills || [];
+    }
+  } catch (error) {
+    console.error('Failed to fetch related skills:', error);
   }
 
   return (
@@ -70,7 +129,7 @@ export default async function PublicSkillDetailPage({ params }: Props) {
             <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            返回 Skills 市场
+            返回 Skill仓库
           </Link>
 
           <div className="flex items-start justify-between">
@@ -97,6 +156,25 @@ export default async function PublicSkillDetailPage({ params }: Props) {
                     {skill.namespace.name}
                   </Link>
                 )}
+                {/* 子分类徽章 */}
+                {skill.subcategory && (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    {getSubcategoryLabel(skill.subcategory)}
+                  </span>
+                )}
+                {/* 置信度徽章 */}
+                {skill.confidence && (
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    skill.confidence >= 80 ? 'bg-green-100 text-green-800' :
+                    skill.confidence >= 60 ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                    {Math.round(skill.confidence)}%
+                  </span>
+                )}
                 <span className="flex items-center">
                   <svg className="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -112,12 +190,17 @@ export default async function PublicSkillDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <button className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+            <a 
+              href={skill.repositoryUrl || '#'}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 transition-colors"
+            >
               <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              下载安装
-            </button>
+              查看并下载
+            </a>
           </div>
         </div>
       </div>
@@ -233,6 +316,54 @@ export default async function PublicSkillDetailPage({ params }: Props) {
                   </svg>
                   查看代码仓库
                 </a>
+              </div>
+            )}
+
+            {/* 报告错误 */}
+            <div className="bg-white shadow rounded-lg p-6">
+              <h3 className="font-semibold text-gray-900 mb-4">发现问题？</h3>
+              <p className="text-sm text-gray-600 mb-4">
+                如果您发现分类或其他信息有误，请告诉我们。
+              </p>
+              <FeedbackButton 
+                skillSlug={skill.slug}
+                currentCategory={skill.category}
+                currentSubcategory={skill.subcategory || undefined}
+              />
+            </div>
+
+            {/* 相关Skills推荐 */}
+            {relatedSkills.length > 0 && (
+              <div className="bg-white shadow rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 mb-4">相关 Skills</h3>
+                <div className="space-y-4">
+                  {relatedSkills.map((relatedSkill: any) => (
+                    <Link
+                      key={relatedSkill.id}
+                      href={`/skills/${relatedSkill.slug}`}
+                      className="block p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-md transition-all"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 hover:text-blue-600 transition-colors">
+                            {relatedSkill.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            {relatedSkill.description}
+                          </p>
+                          {relatedSkill.similarity && (
+                            <div className="mt-2 flex items-center text-xs text-gray-500">
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                              </svg>
+                              相似度: {(relatedSkill.similarity * 100).toFixed(0)}%
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </aside>

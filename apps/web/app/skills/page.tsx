@@ -1,6 +1,11 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import EnhancedSearchBox from '@/components/ui/EnhancedSearchBox';
+import SkillCard from '@/components/ui/SkillCard';
+import AdvancedFilterPanel from '@/components/ui/AdvancedFilterPanel';
+import Pagination from '@/components/ui/Pagination';
+import SearchHistory from '@/components/ui/SearchHistory';
 
 // Define types
 interface SkillWithRelations {
@@ -11,6 +16,9 @@ interface SkillWithRelations {
   downloadCount: number;
   rating: number;
   tags?: string[] | null;
+  category?: string;
+  subcategory?: string | null;
+  confidence?: number | null;
   author?: {
     id: string;
     name: string | null;
@@ -24,14 +32,25 @@ interface SkillWithRelations {
 }
 
 export const metadata: Metadata = {
-  title: 'Skills 市场 - SkillHub',
+  title: 'Skill仓库 - SkillHub',
   description: '浏览和发现优秀的 AI Agent 技能',
 };
 
 interface SearchParams {
+  q?: string;
   category?: string;
-  search?: string;
+  subcategory?: string;
+  language?: string;
+  source?: string;
+  license?: string;
+  minQuality?: string;
+  minStars?: string;
+  maxStars?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  sortBy?: string;
   page?: string;
+  semantic?: string; // 新增：是否启用语义搜索
 }
 
 export default async function PublicSkillsPage({
@@ -39,68 +58,208 @@ export default async function PublicSkillsPage({
 }: {
   searchParams: SearchParams;
 }) {
+  const query = searchParams.q;
   const category = searchParams.category;
-  const search = searchParams.search;
+  const subcategory = searchParams.subcategory;
+  const language = searchParams.language;
+  const source = searchParams.source;
+  const license = searchParams.license;
+  const minQuality = searchParams.minQuality ? parseInt(searchParams.minQuality) : undefined;
+  const minStars = searchParams.minStars ? parseInt(searchParams.minStars) : undefined;
+  const maxStars = searchParams.maxStars ? parseInt(searchParams.maxStars) : undefined;
+  const dateFrom = searchParams.dateFrom ? new Date(searchParams.dateFrom) : undefined;
+  const dateTo = searchParams.dateTo ? new Date(searchParams.dateTo) : undefined;
+  const sortBy = searchParams.sortBy || 'relevance';
   const page = parseInt(searchParams.page || '1');
   const limit = 20;
   const skip = (page - 1) * limit;
+  const useSemanticSearch = searchParams.semantic === 'true'; // 检查是否启用语义搜索
 
-  // Build query conditions
-  const where: Record<string, unknown> = {
-    status: 'APPROVED',
-    isPublic: true,
-  };
+  // 根据是否启用语义搜索，使用不同的搜索方法
+  let skills: SkillWithRelations[] = [];
+  let total = 0;
 
-  if (category) {
-    where.category = category;
+  if (useSemanticSearch && query) {
+    // 使用语义搜索
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/search/semantic?q=${encodeURIComponent(query)}&limit=${limit}&category=${category || ''}&language=${language || ''}&source=${source || ''}`,
+        { cache: 'no-store' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        skills = data.results || [];
+        total = data.total || 0;
+      } else {
+        console.error('Semantic search failed:', await response.text());
+        // 回退到传统搜索
+        throw new Error('Semantic search failed');
+      }
+    } catch (error) {
+      console.error('Failed to perform semantic search, falling back to traditional search:', error);
+      // 回退到传统搜索逻辑（下面的代码）
+      useSemanticSearchFallback();
+    }
+  } else {
+    // 使用传统搜索
+    useTraditionalSearch();
   }
 
-  if (search) {
-    where.OR = [
-      { name: { contains: search, mode: 'insensitive' } },
-      { description: { contains: search, mode: 'insensitive' } },
-      { tags: { has: search } },
-    ];
+  // 传统搜索函数
+  async function useTraditionalSearch() {
+    // Build query conditions for new search API
+    const where: Record<string, unknown> = {
+      status: 'APPROVED',
+      isPublic: true,
+    };
+
+    if (category) {
+      where.category = category;
+    }
+
+    if (subcategory) {
+      where.subcategory = subcategory;
+    }
+
+    if (language) {
+      where.languages = { has: language };
+    }
+
+    if (source) {
+      where.source = source;
+    }
+
+    if (license) {
+      where.license = license;
+    }
+
+    if (minQuality) {
+      where.qualityScore = { gte: minQuality };
+    }
+
+    if (minStars !== undefined || maxStars !== undefined) {
+      where.starCount = {};
+      if (minStars !== undefined) {
+        (where.starCount as any).gte = minStars;
+      }
+      if (maxStars !== undefined) {
+        (where.starCount as any).lte = maxStars;
+      }
+    }
+
+    if (dateFrom || dateTo) {
+      where.updatedAt = {};
+      if (dateFrom) {
+        (where.updatedAt as any).gte = dateFrom;
+      }
+      if (dateTo) {
+        (where.updatedAt as any).lte = dateTo;
+      }
+    }
+
+    if (query) {
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+        { tags: { hasSome: [query] } },
+      ];
+    }
+
+    // Determine sort order
+    type OrderByField = {
+      downloadCount?: 'asc' | 'desc';
+      qualityScore?: 'asc' | 'desc';
+      updatedAt?: 'asc' | 'desc';
+      starCount?: 'asc' | 'desc';
+    };
+    
+    let orderBy: OrderByField = { downloadCount: 'desc' };
+    switch (sortBy) {
+      case 'quality':
+        orderBy = { qualityScore: 'desc' };
+        break;
+      case 'updated':
+        orderBy = { updatedAt: 'desc' };
+        break;
+      case 'stars':
+        orderBy = { starCount: 'desc' };
+        break;
+      case 'downloads':
+        orderBy = { downloadCount: 'desc' };
+        break;
+      default:
+        orderBy = { downloadCount: 'desc' };
+    }
+
+    // Get total count
+    total = await prisma.skill.count({ where });
+
+    // Get skills
+    skills = await prisma.skill.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy,
+      include: {
+        author: {
+          select: {
+            id: true,
+            name: true,
+            image: true,
+          },
+        },
+        namespace: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+          },
+        },
+      },
+    }) as SkillWithRelations[];
   }
 
-  // Get total count
-  const total = await prisma.skill.count({ where });
+  // 语义搜索回退函数
+  async function useSemanticSearchFallback() {
+    await useTraditionalSearch();
+  }
 
-  // Get skills
-  const skills = await prisma.skill.findMany({
-    where,
-    skip,
-    take: limit,
-    orderBy: {
-      downloadCount: 'desc',
-    },
-    include: {
-      author: {
-        select: {
-          id: true,
-          name: true,
-          image: true,
-        },
-      },
-      namespace: {
-        select: {
-          id: true,
-          slug: true,
-          name: true,
-        },
-      },
+  // Get dynamic categories from database
+  const categoryStats = await prisma.skill.groupBy({
+    by: ['category'],
+    _count: true,
+    where: {
+      status: 'APPROVED',
+      isPublic: true,
     },
   });
 
-  // Category list
+  // Category mapping for display names
+  const categoryNames: Record<string, string> = {
+    'ai_ml': 'AI/ML',
+    'development': '开发工具',
+    'data_analytics': '数据分析',
+    'automation': '自动化',
+    'communication': '通讯协作',
+    'business': '商业金融',
+    'security': '安全',
+    'devops': 'DevOps',
+    'web_mobile': 'Web/移动',
+    'productivity': '生产力',
+    'general': '其他',
+  };
+
+  // Build category list with counts
   const categories = [
-    { value: '', label: '全部' },
-    { value: 'ai-agent', label: 'AI Agent' },
-    { value: 'data-science', label: '数据科学' },
-    { value: 'web-development', label: 'Web 开发' },
-    { value: 'automation', label: '自动化' },
-    { value: 'productivity', label: '生产力' },
-    { value: 'other', label: '其他' },
+    { value: '', label: '全部', count: total },
+    ...categoryStats
+      .map(stat => ({
+        value: stat.category,
+        label: categoryNames[stat.category] || stat.category,
+        count: stat._count,
+      }))
+      .sort((a, b) => b.count - a.count), // Sort by count descending
   ];
 
   return (
@@ -127,7 +286,7 @@ export default async function PublicSkillsPage({
               href="/skills"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              技能市场
+              Skill仓库
             </Link>
             <Link
               href="https://github.com/BigLionX/SkillHub"
@@ -176,35 +335,22 @@ export default async function PublicSkillsPage({
               发现优秀的 AI Agent 技能
             </div>
             <h1 className="text-5xl font-extrabold mb-6 tracking-tight">
-              Skills 市场
+              Skill信息聚合平台
             </h1>
             <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto leading-relaxed">
               探索、下载和分享社区创建的优质技能，为你的 AI Agent 赋能无限可能
             </p>
             
-            {/* Search Bar */}
-            <form className="max-w-3xl mx-auto">
-              <div className="relative flex items-center">
-                <div className="absolute left-4 text-gray-400">
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-                <input
-                  type="text"
-                  name="search"
-                  defaultValue={search}
-                  placeholder="搜索技能名称、描述或标签..."
-                  className="flex-1 pl-12 pr-32 py-4 rounded-2xl bg-white/95 backdrop-blur-sm text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-4 focus:ring-white/30 shadow-xl transition-all"
-                />
-                <button
-                  type="submit"
-                  className="absolute right-2 px-8 py-2.5 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                >
-                  搜索
-                </button>
+            {/* Search Bar - Using new EnhancedSearchBox component */}
+            <div className="max-w-3xl mx-auto">
+              <div className="flex items-center gap-3 mb-4 justify-end">
+                <SearchHistory maxItems={10} />
               </div>
-            </form>
+              <EnhancedSearchBox 
+                placeholder="搜索技能名称、描述或标签..." 
+                enableSemanticSearch={useSemanticSearch}
+              />
+            </div>
             
             {/* Quick Stats */}
             <div className="mt-12 grid grid-cols-3 gap-6 max-w-2xl mx-auto">
@@ -225,40 +371,46 @@ export default async function PublicSkillsPage({
         </div>
       </div>
 
+      {/* 快速标签栏 */}
+      {categories.length > 1 && (
+        <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+            <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide">
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap mr-2">快速筛选：</span>
+              {categories.slice(0, 8).map((cat) => (
+                <Link
+                  key={cat.value}
+                  href={cat.value ? `/?category=${cat.value}` : '/'}
+                  className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-all whitespace-nowrap ${
+                    category === cat.value
+                      ? 'bg-linear-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {cat.label}
+                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                    category === cat.value ? 'bg-white/20' : 'bg-gray-200'
+                  }`}>
+                    {cat.count}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex gap-8">
-          {/* 侧边栏 - 分类筛选 */}
+          {/* 侧边栏 - 高级筛选 */}
           <aside className="w-64 shrink-0">
-            <div className="bg-white/80 backdrop-blur-sm shadow-lg shadow-gray-200/50 rounded-2xl p-6 sticky top-4">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-8 h-8 bg-linear-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                  </svg>
-                </div>
-                <h3 className="font-bold text-gray-900 text-lg">分类筛选</h3>
-              </div>
-              <nav className="space-y-1">
-                {categories.map((cat) => (
-                  <Link
-                    key={cat.value}
-                    href={cat.value ? `/?category=${cat.value}` : '/'}
-                    className={`group flex items-center justify-between px-4 py-3 rounded-xl text-sm font-medium transition-all ${
-                      category === cat.value
-                        ? 'bg-linear-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/30'
-                        : 'text-gray-700 hover:bg-gray-50 hover:text-blue-600 hover:translate-x-1'
-                    }`}
-                  >
-                    <span>{cat.label}</span>
-                    {category === cat.value && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/>
-                      </svg>
-                    )}
-                  </Link>
-                ))}
-              </nav>
-            </div>
+            <AdvancedFilterPanel
+              categories={categories.filter(c => c.value).map(c => ({
+                value: c.value,
+                label: c.label,
+                count: c.count,
+              }))}
+            />
           </aside>
 
           {/* 主内容区 */}
@@ -306,106 +458,32 @@ export default async function PublicSkillsPage({
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {skills.map((skill: SkillWithRelations) => (
-                  <Link
+                  <SkillCard
                     key={skill.id}
-                    href={`/skills/${skill.slug}`}
-                    className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50 hover:shadow-2xl hover:shadow-blue-500/10 hover:-translate-y-1 transition-all overflow-hidden border border-gray-100"
-                  >
-                    {/* Card Header with gradient accent */}
-                    <div className="h-1.5 bg-linear-to-r from-blue-500 via-indigo-500 to-purple-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                    
-                    <div className="p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <h3 className="text-lg font-bold text-gray-900 line-clamp-1 group-hover:text-blue-600 transition-colors">
-                          {skill.name}
-                        </h3>
-                        {skill.namespace && (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold bg-linear-to-r from-purple-500/10 to-indigo-500/10 text-purple-700 border border-purple-200">
-                            {skill.namespace.name}
-                          </span>
-                        )}
-                      </div>
-                      
-                      <p className="text-sm text-gray-600 mb-5 line-clamp-2 leading-relaxed">
-                        {skill.description}
-                      </p>
-
-                      {/* Author and Stats */}
-                      <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                        <div className="flex items-center">
-                          {skill.author?.image ? (
-                            <img
-                              src={skill.author.image}
-                              alt={skill.author.name || ''}
-                              className="w-8 h-8 rounded-full mr-2 ring-2 ring-white"
-                            />
-                          ) : (
-                            <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-400 to-indigo-500 flex items-center justify-center mr-2 text-white text-xs font-bold">
-                              {skill.author?.name?.charAt(0).toUpperCase() || '?'}
-                            </div>
-                          )}
-                          <span className="text-sm text-gray-700 font-medium">{skill.author?.name || '未知作者'}</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="flex items-center text-sm text-gray-600">
-                            <svg className="w-4 h-4 mr-1 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                            </svg>
-                            {skill.downloadCount.toLocaleString()}
-                          </span>
-                          <span className="flex items-center text-sm text-gray-600">
-                            <svg className="w-4 h-4 mr-1 text-yellow-500" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
-                            </svg>
-                            {skill.rating.toFixed(1)}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 标签 */}
-                      {skill.tags && skill.tags.length > 0 && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {skill.tags.slice(0, 3).map((tag: string, idx: number) => (
-                            <span
-                              key={idx}
-                              className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-linear-to-r from-gray-50 to-gray-100 text-gray-700 border border-gray-200 hover:border-blue-300 transition-colors"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
+                    name={skill.name}
+                    slug={skill.slug}
+                    description={skill.description}
+                    subcategory={skill.subcategory}
+                    tags={skill.tags}
+                    qualityScore={skill.confidence}
+                    starCount={skill.downloadCount}
+                    downloadCount={skill.downloadCount}
+                    author={skill.author}
+                    namespace={skill.namespace}
+                  />
                 ))}
               </div>
             )}
 
-            {/* 分页 */}
+            {/* 分页 - Using new Pagination component */}
             {total > limit && (
-              <div className="mt-8 flex justify-center">
-                <nav className="flex items-center space-x-2">
-                  {page > 1 && (
-                    <Link
-                      href={`/?page=${page - 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      上一页
-                    </Link>
-                  )}
-                  <span className="px-4 py-2 text-sm text-gray-700">
-                    第 {page} 页 / 共 {Math.ceil(total / limit)} 页
-                  </span>
-                  {page < Math.ceil(total / limit) && (
-                    <Link
-                      href={`/?page=${page + 1}${category ? `&category=${category}` : ''}${search ? `&search=${search}` : ''}`}
-                      className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
-                    >
-                      下一页
-                    </Link>
-                  )}
-                </nav>
-              </div>
+              <Pagination
+                currentPage={page}
+                totalPages={Math.ceil(total / limit)}
+                totalItems={total}
+                pageSize={limit}
+                className="mt-8"
+              />
             )}
           </main>
         </div>
@@ -454,7 +532,7 @@ export default async function PublicSkillsPage({
                 </li>
                 <li>
                   <Link href="/skills" className="hover:text-white transition-colors">
-                    技能市场
+                    Skill仓库
                   </Link>
                 </li>
                 <li>

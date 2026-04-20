@@ -194,6 +194,13 @@ export default async function AdminPage() {
             <div className="text-sm text-white/80 mt-1">查看待审核的技能</div>
           </Link>
           <Link
+            href="/admin/users"
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
+          >
+            <div className="font-medium">用户管理</div>
+            <div className="text-sm text-white/80 mt-1">管理平台用户</div>
+          </Link>
+          <Link
             href="/admin/audit-logs"
             className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
           >
@@ -206,6 +213,13 @@ export default async function AdminPage() {
           >
             <div className="font-medium">数据分析</div>
             <div className="text-sm text-white/80 mt-1">查看详细统计</div>
+          </Link>
+          <Link
+            href="/admin/crawler"
+            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
+          >
+            <div className="font-medium">爬虫设置</div>
+            <div className="text-sm text-white/80 mt-1">管理数据采集任务</div>
           </Link>
         </div>
       </div>
