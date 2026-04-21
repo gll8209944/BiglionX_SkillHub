@@ -126,7 +126,7 @@ export class EmbeddingService {
           encoding_format: 'float',
         });
         
-        const batchEmbeddings = response.data.map((item: any) => item.embedding);
+        const batchEmbeddings = response.data.map((item) => item.embedding);
         embeddings.push(...batchEmbeddings);
         
         console.log(`✅ 批次 ${i / batchSize + 1} 完成 - 生成 ${batchEmbeddings.length} 个embeddings`);
