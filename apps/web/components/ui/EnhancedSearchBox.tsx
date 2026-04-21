@@ -15,18 +15,7 @@ interface EnhancedSearchBoxProps {
   initialQuery?: string; // 新增：从父组件传递的初始查询参数
 }
 
-// 定义搜索历史API的接口
-interface SearchHistoryAPI {
-  addToHistory: (_query: string) => void;
-  clearHistory?: () => void; // 可选方法
-}
-
-// 扩展Window接口
-declare global {
-  interface Window {
-    __searchHistoryAPI?: SearchHistoryAPI;
-  }
-}
+// 定义搜索历史API的接口（已由 global.d.ts 定义，保留此用于类型检查）
 
 export default function EnhancedSearchBox({ 
   placeholder = '搜索 Skills...', 
