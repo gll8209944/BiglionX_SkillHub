@@ -22,6 +22,26 @@ UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
 UPSTASH_REDIS_REST_TOKEN=xxx
 ```
 
+#### 2.5. AI Embeddings 配置（语义搜索，可选）
+
+**推荐使用智谱AI**（性价比高，国内访问快）：
+
+```env
+OPENAI_API_KEY=你的智谱AI API Key
+OPENAI_BASE_URL=https://open.bigmodel.cn/api/paas/v4
+```
+
+**获取智谱AI API Key**:
+1. 访问 [智谱AI 开放平台](https://open.bigmodel.cn/)
+2. 注册/登录账号
+3. 进入 [API Keys 管理](https://open.bigmodel.cn/usercenter/apikeys)
+4. 创建新的 API Key
+5. 复制并粘贴到 `OPENAI_API_KEY`
+
+**其他选项**:
+- DeepSeek: `OPENAI_BASE_URL=https://api.deepseek.com`
+- OpenAI: 不设置 `OPENAI_BASE_URL`（使用默认值）
+
 #### 3. NextAuth 认证配置
 ```env
 NEXTAUTH_SECRET=<生成方法: openssl rand -base64 32>

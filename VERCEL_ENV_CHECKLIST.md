@@ -34,6 +34,60 @@
 
 ---
 
+### 2.5️⃣ AI Embeddings 配置（语义搜索）
+
+支持多个 AI 提供商，选择一个配置即可：
+
+#### 选项 A: 智谱AI (推荐，性价比高) 🇨🇳
+
+| 变量名 | 示例值 | 说明 |
+|--------|--------|------|
+| `OPENAI_API_KEY` | `e0561298533a4d2f8d4b79d00c4c950b.xxx` | 智谱AI API Key |
+| `OPENAI_BASE_URL` | `https://open.bigmodel.cn/api/paas/v4` | 智谱AI API 端点 |
+
+**获取方式**:
+1. 访问 [智谱AI 开放平台](https://open.bigmodel.cn/)
+2. 注册/登录账号
+3. 进入 [API Keys 管理](https://open.bigmodel.cn/usercenter/apikeys)
+4. 创建新的 API Key
+5. 复制 API Key 到 `OPENAI_API_KEY`
+
+**优点**:
+- ✅ 国内访问速度快
+- ✅ 价格实惠（embedding-2 模型）
+- ✅ 支持中文效果好
+- ✅ 1024 维向量，质量高
+
+---
+
+#### 选项 B: DeepSeek
+
+| 变量名 | 示例值 | 说明 |
+|--------|--------|------|
+| `OPENAI_API_KEY` | `sk-xxx` | DeepSeek API Key |
+| `OPENAI_BASE_URL` | `https://api.deepseek.com` | DeepSeek API 端点 |
+
+**获取方式**:
+- 访问 [DeepSeek 平台](https://platform.deepseek.com/)
+- 创建 API Key
+
+---
+
+#### 选项 C: OpenAI
+
+| 变量名 | 示例值 | 说明 |
+|--------|--------|------|
+| `OPENAI_API_KEY` | `sk-proj-xxx` | OpenAI API Key |
+| `OPENAI_BASE_URL` | 不设置或 `https://api.openai.com/v1` | OpenAI API 端点（可选） |
+
+**获取方式**:
+- 访问 [OpenAI Platform](https://platform.openai.com/)
+- 创建 API Key
+
+**注意**: OpenAI 在国内访问可能需要代理
+
+---
+
 ### 3️⃣ NextAuth 认证配置
 
 | 变量名 | 示例值 | 说明 |
