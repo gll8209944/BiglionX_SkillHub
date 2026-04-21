@@ -54,11 +54,10 @@ export default function EnhancedSearchBox({
   }, []);
 
   // 原生防抖函数
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const debounce = <T extends (..._args: any[]) => any>(
+  const debounce = <T extends (...args: any[]) => any>(
     func: T,
     wait: number
-  ): ((..._args: Parameters<T>) => void) & { cancel: () => void } => {
+  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
     let timeout: ReturnType<typeof setTimeout> | null = null;
     
     const debounced = (...debounceArgs: Parameters<T>) => {
@@ -72,7 +71,6 @@ export default function EnhancedSearchBox({
     
     return debounced;
   };
-  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   // 使用防抖获取搜索建议
   const debouncedFetch = useCallback(
