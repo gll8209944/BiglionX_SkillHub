@@ -23,6 +23,7 @@
       "outputs": ["dist/**"],
       "env": [
         "DATABASE_URL",
+        "DIRECT_URL",
         "NEXTAUTH_URL",
         "NEXTAUTH_SECRET",
         "SKILLSMP_API_KEY",
