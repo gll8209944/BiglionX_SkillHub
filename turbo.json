@@ -6,6 +6,7 @@
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
       "env": [
         "DATABASE_URL",
+        "DIRECT_URL",
         "NEXTAUTH_URL",
         "NEXTAUTH_SECRET",
         "SKILLSMP_API_KEY",
@@ -13,24 +14,13 @@
         "UPSTASH_REDIS_REST_TOKEN",
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
         "NODE_ENV"
       ]
     },
     "@skillhub/cli#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
-      "env": [
-        "SKILLSMP_API_KEY",
-        "UPSTASH_REDIS_REST_URL",
-        "UPSTASH_REDIS_REST_TOKEN",
-        "OPENAI_API_KEY",
-        "OPENAI_BASE_URL",
-        "NODE_ENV"
-      ]
-    },
-    "web#build": {
-      "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**"],
       "env": [
         "DATABASE_URL",
         "NEXTAUTH_URL",
@@ -40,6 +30,24 @@
         "UPSTASH_REDIS_REST_TOKEN",
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
+        "NODE_ENV"
+      ]
+    },
+    "web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "SKILLSMP_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
         "NODE_ENV"
       ]
     },
