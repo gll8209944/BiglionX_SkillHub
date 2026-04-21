@@ -9,7 +9,8 @@
   },
   "build": {
     "env": {
-      "PRISMA_GENERATE_SKIP_AUTOINSTALL": "false"
+      "PRISMA_GENERATE_SKIP_AUTOINSTALL": "false",
+      "CYPRESS_INSTALL_BINARY": "0"
     }
   },
   "crons": [
