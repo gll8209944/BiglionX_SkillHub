@@ -63,16 +63,15 @@ jobs:
           
           echo "响应状态码: $HTTP_CODE"
           echo "响应内容:"
-          echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+          echo "$RESPONSE_BODY"
           
-          # 保存结果
-          echo "response_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$RESPONSE_BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # 保存结果（使用 base64 编码避免特殊字符问题）
+          echo "response_body=$(echo "$RESPONSE_BODY" | base64 -w 0)" >> $GITHUB_OUTPUT
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
           
           # 检查是否成功
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ 爬虫任务失败"
+            echo "❌ 爬虫任务失败 (HTTP $HTTP_CODE)"
             exit 1
           fi
           
@@ -85,13 +84,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **执行时间**: $(date -u)" >> $GITHUB_STEP_SUMMARY
           echo "- **状态**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **HTTP 状态码**: ${{ steps.crawler.outputs.http_code }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ -n "${{ steps.crawler.outputs.response_body }}" ]; then
             echo "### 详细结果" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```json' >> $GITHUB_STEP_SUMMARY
-            echo "${{ steps.crawler.outputs.response_body }}" | jq . 2>/dev/null || echo "${{ steps.crawler.outputs.response_body }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            # 解码 base64 并输出
+            echo "${{ steps.crawler.outputs.response_body }}" | base64 -d 2>/dev/null || echo "无法解码响应内容"
+            echo "" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
 
@@ -101,6 +103,11 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+      - name: 安装必要工具
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+      
       - name: 检查配置
         run: |
           if [ -z "${{ secrets.SKILLHUB_BASE_URL }}" ]; then
@@ -133,16 +140,15 @@ jobs:
           
           echo "响应状态码: $HTTP_CODE"
           echo "响应内容:"
-          echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+          echo "$RESPONSE_BODY"
           
-          # 保存结果
-          echo "response_body<<EOF" >> $GITHUB_OUTPUT
-          echo "$RESPONSE_BODY" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
+          # 保存结果（使用 base64 编码避免特殊字符问题）
+          echo "response_body=$(echo "$RESPONSE_BODY" | base64 -w 0)" >> $GITHUB_OUTPUT
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
           
           # 检查是否成功
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "❌ 同步任务失败"
+            echo "❌ 同步任务失败 (HTTP $HTTP_CODE)"
             exit 1
           fi
           
@@ -155,13 +161,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **执行时间**: $(date -u)" >> $GITHUB_STEP_SUMMARY
           echo "- **状态**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **HTTP 状态码**: ${{ steps.sync.outputs.http_code }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           if [ -n "${{ steps.sync.outputs.response_body }}" ]; then
             echo "### 详细结果" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo '```json' >> $GITHUB_STEP_SUMMARY
-            echo "${{ steps.sync.outputs.response_body }}" | jq . 2>/dev/null || echo "${{ steps.sync.outputs.response_body }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            # 解码 base64 并输出
+            echo "${{ steps.sync.outputs.response_body }}" | base64 -d 2>/dev/null || echo "无法解码响应内容"
+            echo "" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           fi
 
