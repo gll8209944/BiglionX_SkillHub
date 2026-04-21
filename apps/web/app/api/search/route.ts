@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
     const subcategory = searchParams.get('subcategory') || undefined;
     const language = searchParams.get('language') || undefined;
     const minQualityScore = searchParams.get('minQuality') 
-      ? parseFloat(searchParams.get('minQuality')!) 
+      ? parseFloat(searchParams.get('minQuality') as string) 
       : undefined;
     const source = searchParams.get('source') || undefined;
     const page = parseInt(searchParams.get('page') || '1');
     const pageSize = Math.min(parseInt(searchParams.get('pageSize') || '20'), 100); // 最大100
-    const sortBy = (searchParams.get('sortBy') as any) || 'relevance';
+    const sortBy = (searchParams.get('sortBy') as 'relevance' | 'quality' | 'updated' | 'stars' | 'downloads' | undefined) || 'relevance';
 
     // 验证参数
     if (!query && !category && !subcategory && !language && !source) {
