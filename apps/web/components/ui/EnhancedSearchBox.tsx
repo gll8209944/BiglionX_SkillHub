@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useState, useEffect, useRef, useCallback, type FormEvent, type KeyboardEvent } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Suggestion {
   text: string;
@@ -12,11 +12,13 @@ interface EnhancedSearchBoxProps {
   placeholder?: string;
   className?: string;
   enableSemanticSearch?: boolean;
+  initialQuery?: string; // 新增：从父组件传递的初始查询参数
 }
 
 // 定义搜索历史API的接口
 interface SearchHistoryAPI {
-  addToHistory: (query: string) => void;
+  addToHistory: (_query: string) => void;
+  clearHistory?: () => void; // 可选方法
 }
 
 // 扩展Window接口
@@ -29,11 +31,11 @@ declare global {
 export default function EnhancedSearchBox({ 
   placeholder = '搜索 Skills...', 
   className = '',
-  enableSemanticSearch = false
+  enableSemanticSearch = false,
+  initialQuery = ''
 }: EnhancedSearchBoxProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [query, setQuery] = useState(initialQuery);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -64,15 +66,15 @@ export default function EnhancedSearchBox({
 
   // 原生防抖函数
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const debounce = <T extends (...args: any[]) => any>(
+  const debounce = <T extends (..._args: any[]) => any>(
     func: T,
     wait: number
-  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
-    let timeout: NodeJS.Timeout | null = null;
+  ): ((..._args: Parameters<T>) => void) & { cancel: () => void } => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     
-    const debounced = (...args: Parameters<T>) => {
+    const debounced = (...debounceArgs: Parameters<T>) => {
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
+      timeout = setTimeout(() => func(...debounceArgs), wait);
     };
     
     debounced.cancel = () => {
@@ -81,6 +83,7 @@ export default function EnhancedSearchBox({
     
     return debounced;
   };
+  /* eslint-enable @typescript-eslint/no-unused-vars */
 
   // 使用防抖获取搜索建议
   const debouncedFetch = useCallback(
@@ -117,7 +120,7 @@ export default function EnhancedSearchBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (query.trim()) {
       // 添加到搜索历史
@@ -152,7 +155,7 @@ export default function EnhancedSearchBox({
     setShowSuggestions(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
@@ -164,53 +167,53 @@ export default function EnhancedSearchBox({
 
   return (
     <div className={`relative ${className}`} ref={suggestionRef}>
-      <form onSubmit={handleSearch} className="relative">
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-        </div>
-        <input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setShowSuggestions(true);
-          }}
-          onFocus={() => query.length >= 2 && setShowSuggestions(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          className="w-full pl-12 pr-48 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
-        />
-        
-        {/* 语义搜索切换按钮 */}
-        <div className="absolute right-20 top-1/2 -translate-y-1/2 flex items-center space-x-2">
-          <label className="flex items-center cursor-pointer">
-            <div className="relative">
-              <input 
-                type="checkbox" 
-                checked={useSemanticSearch}
-                onChange={toggleSemanticSearch}
-                className="sr-only"
-              />
-              <div className={`block w-10 h-6 rounded-full transition-colors ${useSemanticSearch ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
-              <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${useSemanticSearch ? 'transform translate-x-4' : ''}`}></div>
-            </div>
-            <div className="ml-2 text-xs font-medium text-gray-700">
-              语义搜索
-            </div>
-          </label>
-        </div>
-        
-        <button
-          type="submit"
-          disabled={!query.trim()}
-          className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
-        >
-          搜索
-        </button>
-      </form>
+      <div className="flex items-center gap-3">
+        <form onSubmit={handleSearch} className="relative flex-1">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </div>
+          <input
+            ref={inputRef}
+            type="text"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className="w-full pl-12 pr-20 py-3.5 border border-gray-300 rounded-xl bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm hover:shadow-md"
+          />
+          
+          <button
+            type="submit"
+            disabled={!query.trim()}
+            className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2 bg-linear-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md hover:shadow-lg"
+          >
+            搜索
+          </button>
+        </form>
+
+        {/* 语义搜索切换按钮 - 移到搜索框外部 */}
+        <label className="flex items-center gap-2 cursor-pointer shrink-0">
+          <div className="relative">
+            <input 
+              type="checkbox" 
+              checked={useSemanticSearch}
+              onChange={toggleSemanticSearch}
+              className="sr-only"
+            />
+            <div className={`block w-10 h-6 rounded-full transition-colors ${useSemanticSearch ? 'bg-blue-600' : 'bg-gray-300'}`}></div>
+            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${useSemanticSearch ? 'transform translate-x-4' : ''}`}></div>
+          </div>
+          <span className="text-sm font-medium text-white whitespace-nowrap">
+            语义搜索
+          </span>
+        </label>
+      </div>
 
       {/* 搜索建议下拉列表 */}
       {showSuggestions && suggestions.length > 0 && (

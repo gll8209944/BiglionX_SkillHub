@@ -16,7 +16,20 @@ class RedisCache {
   public async connect(): Promise<void> {
     if (this.client) return;
 
-    const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    // 在 Vercel 环境中使用 Upstash Redis
+    const isVercel = process.env.VERCEL === '1';
+    let redisUrl: string;
+    
+    if (isVercel && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      // 使用 Upstash Redis (HTTP API)
+      console.log('🔧 Using Upstash Redis for Vercel');
+      // 对于 Upstash，我们需要使用特殊的 URL 格式
+      redisUrl = `${process.env.UPSTASH_REDIS_REST_URL}?token=${process.env.UPSTASH_REDIS_REST_TOKEN}`;
+    } else {
+      // 本地开发使用传统 Redis
+      redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+    }
+    
     this.client = createClient({ url: redisUrl });
 
     this.client.on('error', (err) => {

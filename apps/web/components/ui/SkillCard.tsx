@@ -13,6 +13,7 @@ interface SkillCardProps {
   qualityScore?: number | null;
   starCount?: number;
   downloadCount?: number;
+  source?: string | null;
   author?: {
     name: string | null;
     image: string | null;
@@ -76,6 +77,7 @@ export default function SkillCard({
   qualityScore,
   starCount = 0,
   downloadCount = 0,
+  source,
   author,
   namespace,
   updatedAt,
@@ -140,7 +142,7 @@ export default function SkillCard({
 
         {/* Author and Stats */}
         <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             {author?.image ? (
               <img
                 src={author.image}
@@ -152,9 +154,16 @@ export default function SkillCard({
                 {author?.name?.charAt(0).toUpperCase() || '?'}
               </div>
             )}
-            <span className="text-sm text-gray-700 font-medium">{author?.name || '未知作者'}</span>
+            <div className="flex flex-col">
+              <span className="text-sm text-gray-700 font-medium truncate max-w-30">{author?.name || '未知作者'}</span>
+              {source && (
+                <span className="text-xs text-gray-500">
+                  来源: {source}
+                </span>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <span className="flex items-center text-sm text-gray-600" title="下载次数">
               <svg className="w-4 h-4 mr-1 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -168,6 +177,22 @@ export default function SkillCard({
               {formatNumber(starCount)}
             </span>
           </div>
+        </div>
+
+        {/* Action Buttons: Comment and Download */}
+        <div className="mt-4 flex gap-2">
+          <button className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 hover:border-blue-300 transition-colors group/comment">
+            <svg className="w-4 h-4 text-gray-400 group-hover/comment:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+            </svg>
+            评论
+          </button>
+          <button className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 bg-linear-to-r from-blue-600 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-lg transition-all">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            下载
+          </button>
         </div>
 
         {/* 标签 */}

@@ -3,7 +3,10 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// 在 Vercel 环境中，环境变量通过平台设置，不需要从文件加载
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+}
 
 // Next.js instrumentation file - runs when the server starts
 export async function register() {

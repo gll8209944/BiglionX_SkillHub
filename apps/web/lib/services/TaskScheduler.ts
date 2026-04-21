@@ -34,6 +34,7 @@ export class TaskScheduler {
     } catch (error) {
       console.error('❌ Failed to load configuration, using defaults:', error);
       // 继续使用默认配置
+      this.config = null; // 使用默认配置
     }
 
     const scheduleConfig = this.config?.schedule;

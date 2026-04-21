@@ -1,7 +1,9 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
 import { redisCache } from './redis-vercel';
 
+/* eslint-disable no-unused-vars */
 type HandlerFunction = (request: NextRequest, ...args: unknown[]) => Promise<NextResponse>;
+/* eslint-enable no-unused-vars */
 
 export function withCache(handler: HandlerFunction, ttl = 300) {
   return async function cachedHandler(request: NextRequest, ...args: unknown[]) {

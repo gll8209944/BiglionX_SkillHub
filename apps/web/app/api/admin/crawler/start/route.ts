@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth-config';
+import { requireAdminSession } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 import { CrawlerService } from '@/lib/services/CrawlerService';
 
@@ -9,13 +9,11 @@ import { CrawlerService } from '@/lib/services/CrawlerService';
  */
 export async function POST(request: Request) {
   try {
-    const session = await auth();
+    const session = await requireAdminSession();
     
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized or insufficient permissions' }, { status: 403 });
     }
-
-    // TODO: 检查管理员权限
 
     const body = await request.json();
     const { mode, config } = body;
@@ -110,7 +108,7 @@ export async function POST(request: Request) {
         action: 'CRAWLER_STARTED',
         resourceType: 'crawler',
         resourceId: mode,
-        actorId: session.user.id,
+        actorId: session.user?.id || null,
         metadata: { mode, result },
         status: 'success',
       },
@@ -122,13 +120,13 @@ export async function POST(request: Request) {
     
     // 记录错误日志
     try {
-      const session = await auth();
+      const errorSession = await requireAdminSession();
       await prisma.auditLog.create({
         data: {
           action: 'CRAWLER_FAILED',
           resourceType: 'crawler',
           resourceId: 'start',
-          actorId: session?.user?.id || null,
+          actorId: errorSession?.user?.id || null,
           errorMessage: error instanceof Error ? error.message : 'Unknown error',
           status: 'failed',
         },

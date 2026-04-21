@@ -13,6 +13,7 @@ interface Skill {
   status: string;
   category: string;
   tags: string[];
+  downloadCount: number;
   author: {
     id: string;
     name: string | null;
@@ -25,7 +26,6 @@ interface Skill {
   } | null;
   _count: {
     versions: number;
-    downloads: number;
   };
   createdAt: string;
 }
@@ -216,7 +216,7 @@ export default function SkillsPage() {
                   <div className="flex items-center space-x-4">
                     <div className="flex items-center">
                       <Download className="h-4 w-4 mr-1" />
-                      {skill._count.downloads}
+                      {skill.downloadCount}
                     </div>
                     <div className="flex items-center">
                       <Package className="h-4 w-4 mr-1" />

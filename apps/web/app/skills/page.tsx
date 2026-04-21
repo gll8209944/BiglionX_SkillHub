@@ -14,7 +14,9 @@ interface SkillWithRelations {
   slug: string;
   description: string;
   downloadCount: number;
+  starCount: number;
   rating: number;
+  source?: string | null;
   tags?: string[] | null;
   category?: string;
   subcategory?: string | null;
@@ -103,7 +105,7 @@ export default async function PublicSkillsPage({
     }
   } else {
     // 使用传统搜索
-    useTraditionalSearch();
+    await useTraditionalSearch();
   }
 
   // 传统搜索函数
@@ -139,23 +141,25 @@ export default async function PublicSkillsPage({
     }
 
     if (minStars !== undefined || maxStars !== undefined) {
-      where.starCount = {};
+      const starCountCondition: { gte?: number; lte?: number } = {};
       if (minStars !== undefined) {
-        (where.starCount as any).gte = minStars;
+        starCountCondition.gte = minStars;
       }
       if (maxStars !== undefined) {
-        (where.starCount as any).lte = maxStars;
+        starCountCondition.lte = maxStars;
       }
+      where.starCount = starCountCondition;
     }
 
     if (dateFrom || dateTo) {
-      where.updatedAt = {};
+      const updatedAtCondition: { gte?: Date; lte?: Date } = {};
       if (dateFrom) {
-        (where.updatedAt as any).gte = dateFrom;
+        updatedAtCondition.gte = dateFrom;
       }
       if (dateTo) {
-        (where.updatedAt as any).lte = dateTo;
+        updatedAtCondition.lte = dateTo;
       }
+      where.updatedAt = updatedAtCondition;
     }
 
     if (query) {
@@ -270,9 +274,6 @@ export default async function PublicSkillsPage({
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center space-x-3 group">
               <img src="/logo.png" alt="Skill Hub Logo" className="h-10 w-10 object-contain" />
-              <span className="text-2xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
-                Skill Hub
-              </span>
             </Link>
           </div>
           <div className="flex items-center space-x-6">
@@ -343,13 +344,14 @@ export default async function PublicSkillsPage({
             
             {/* Search Bar - Using new EnhancedSearchBox component */}
             <div className="max-w-3xl mx-auto">
-              <div className="flex items-center gap-3 mb-4 justify-end">
-                <SearchHistory maxItems={10} />
-              </div>
               <EnhancedSearchBox 
                 placeholder="搜索技能名称、描述或标签..." 
                 enableSemanticSearch={useSemanticSearch}
+                initialQuery={query || ''}
               />
+              <div className="mt-2 text-left">
+                <SearchHistory maxItems={10} />
+              </div>
             </div>
             
             {/* Quick Stats */}
@@ -466,8 +468,9 @@ export default async function PublicSkillsPage({
                     subcategory={skill.subcategory}
                     tags={skill.tags}
                     qualityScore={skill.confidence}
-                    starCount={skill.downloadCount}
+                    starCount={skill.starCount}
                     downloadCount={skill.downloadCount}
+                    source={skill.source}
                     author={skill.author}
                     namespace={skill.namespace}
                   />

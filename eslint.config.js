@@ -21,8 +21,26 @@ module.exports = [
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+      "@typescript-eslint/no-unused-vars": [
+        "error", 
+        { 
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_",
+          "caughtErrorsIgnorePattern": "^_",
+          "ignoreRestSiblings": true
+        }
+      ],
       "@typescript-eslint/no-non-null-assertion": "warn",
+    },
+  },
+  {
+    files: ["**/*.js"],
+    languageOptions: {
+      ecmaVersion: "latest",
+      sourceType: "commonjs",
+      globals: {
+        ...globals.node,
+      },
     },
   },
   {
@@ -33,6 +51,7 @@ module.exports = [
       "node_modules/**",
       "deer-flow/**",
       "temp/**",
+      "eslint.config.js",
     ],
   },
 ];

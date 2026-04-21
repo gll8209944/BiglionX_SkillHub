@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth-config';
+import { requireAdminSession } from '@/lib/auth-utils';
 import { prisma } from '@/lib/prisma';
 
 /**
@@ -8,13 +8,11 @@ import { prisma } from '@/lib/prisma';
  */
 export async function GET() {
   try {
-    const session = await auth();
+    const session = await requireAdminSession();
     
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized or insufficient permissions' }, { status: 403 });
     }
-
-    // TODO: 检查管理员权限
 
     const config = await prisma.crawlerConfig.findUnique({
       where: { configKey: 'crawler_settings' },
@@ -40,13 +38,11 @@ export async function GET() {
  */
 export async function POST(request: Request) {
   try {
-    const session = await auth();
+    const session = await requireAdminSession();
     
-    if (!session?.user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized or insufficient permissions' }, { status: 403 });
     }
-
-    // TODO: 检查管理员权限
 
     const body = await request.json();
     const { config } = body;

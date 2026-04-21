@@ -10,25 +10,27 @@ datasource db {
 }
 
 model User {
-  id              String            @id @default(uuid())
-  email           String            @unique
-  name            String?
-  image           String?
-  emailVerified   DateTime?
-  role            UserRole          @default(USER)
-  isDisabled      Boolean           @default(false)
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  password        String?
-  accounts        Account[]
-  apiKeys         ApiKey[]
-  auditLogs       AuditLog[]
-  namespaces      NamespaceMember[]
-  ownedNamespaces Namespace[]       @relation("NamespaceOwner")
-  reviews         Review[]
-  sessions        Session[]
-  feedbacks       SkillFeedback[]
-  skills          Skill[]
+  id                 String            @id @default(uuid())
+  email              String            @unique
+  name               String?
+  image              String?
+  emailVerified      DateTime?
+  role               UserRole          @default(USER)
+  isDisabled         Boolean           @default(false)
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  password           String?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  accounts           Account[]
+  apiKeys            ApiKey[]
+  auditLogs          AuditLog[]
+  namespaces         NamespaceMember[]
+  ownedNamespaces    Namespace[]       @relation("NamespaceOwner")
+  reviews            Review[]
+  sessions           Session[]
+  feedbacks          SkillFeedback[]
+  skills             Skill[]
 
   @@map("users")
 }

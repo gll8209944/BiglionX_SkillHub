@@ -3,6 +3,9 @@ node_modules/
 .pnp
 .pnp.js
 
+# Submodules
+deer-flow/
+
 # Testing
 coverage/
 *.lcov
@@ -20,6 +23,8 @@ out/
 .env.test.local
 .env.production.local
 .env.production.neon
+.env.production
+VERCEL_ENV_SETUP.md
 
 # Logs
 npm-debug.log*

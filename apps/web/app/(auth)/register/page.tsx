@@ -20,8 +20,12 @@ export default function RegisterPage() {
   const handleGitHubRegister = async () => {
     try {
       setIsLoading(true);
+      // 先获取合适的重定向URL
+      const redirectResponse = await fetch('/api/auth/redirect-url');
+      const { redirectUrl } = await redirectResponse.json();
+      
       await signIn('github', { 
-        callbackUrl: '/dashboard' 
+        callbackUrl: redirectUrl
       });
     } catch (error) {
       console.error('GitHub 注册失败:', error);

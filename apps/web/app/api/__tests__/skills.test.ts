@@ -27,9 +27,10 @@ describe('Skills API', () => {
           slug: 'test-skill',
           description: 'A test skill',
           status: 'APPROVED',
+          downloadCount: 10,
           author: { id: 'user1', name: 'Author', image: null },
           namespace: { id: 'ns1', slug: 'test-ns', name: 'Test NS' },
-          _count: { versions: 1, downloads: 10 },
+          _count: { versions: 1 },
         },
       ]);
 

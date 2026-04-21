@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -18,6 +19,7 @@ interface SkillDetail {
   status: string;
   category: string;
   tags: string[];
+  downloadCount: number;
   author: {
     id: string;
     name: string | null;
@@ -36,8 +38,6 @@ interface SkillDetail {
   }>;
   _count: {
     versions: number;
-    downloads: number;
-    reviews: number;
   };
   createdAt: string;
   updatedAt: string;
@@ -266,7 +266,7 @@ export default function SkillDetailPage() {
                   <span>下载量</span>
                 </div>
                 <span className="text-xl font-semibold text-gray-900">
-                  {skill._count.downloads}
+                  {skill.downloadCount}
                 </span>
               </div>
               <div className="flex items-center justify-between">

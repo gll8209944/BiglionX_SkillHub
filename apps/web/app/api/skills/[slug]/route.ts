@@ -43,6 +43,11 @@ export async function GET(request: NextRequest, { params }: Props) {
           },
           take: 5,
         },
+        _count: {
+          select: {
+            versions: true,
+          },
+        },
       },
     });
 

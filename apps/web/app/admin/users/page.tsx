@@ -2,6 +2,7 @@ import { auth } from '@/lib/auth-config';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import Link from 'next/link';
+import StatusFilter from './StatusFilter';
 
 interface UsersPageProps {
   searchParams: {
@@ -107,16 +108,7 @@ export default async function UsersPage({ searchParams }: UsersPageProps) {
           {/* 状态筛选 */}
           <form action="/admin/users" method="GET" className="flex gap-2">
             {search && <input type="hidden" name="search" value={search} />}
-            <select
-              name="status"
-              defaultValue={status}
-              onChange={(e) => e.target.form?.submit()}
-              className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-            >
-              <option value="all">全部状态</option>
-              <option value="verified">已验证</option>
-              <option value="unverified">未验证</option>
-            </select>
+            <StatusFilter status={status} search={search} />
             {(search || status !== 'all') && (
               <Link
                 href="/admin/users"

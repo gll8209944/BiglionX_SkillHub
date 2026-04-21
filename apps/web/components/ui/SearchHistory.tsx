@@ -103,7 +103,7 @@ export default function SearchHistory({
 
   // 暴露方法给父组件
   useEffect(() => {
-    (window as any).__searchHistoryAPI = {
+    window.__searchHistoryAPI = {
       addToHistory,
       clearHistory,
     };
@@ -113,16 +113,13 @@ export default function SearchHistory({
 
   return (
     <div className={`relative ${className}`}>
-      {/* 历史按钮 */}
+      {/* 历史文字链接 */}
       <button
         onClick={() => setShowHistory(!showHistory)}
-        className="flex items-center gap-2 px-3 py-2 text-sm text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+        className="text-sm text-blue-200 hover:text-white transition-colors cursor-pointer"
         title="搜索历史"
       >
-        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <span>历史</span>
+        历史
       </button>
 
       {/* 历史列表 */}
@@ -200,14 +197,14 @@ export default function SearchHistory({
 
 // 工具函数：从任何地方添加搜索历史
 export function addSearchHistory(query: string) {
-  if (typeof window !== 'undefined' && (window as any).__searchHistoryAPI) {
-    (window as any).__searchHistoryAPI.addToHistory(query);
+  if (typeof window !== 'undefined' && window.__searchHistoryAPI) {
+    window.__searchHistoryAPI.addToHistory(query);
   }
 }
 
 // 工具函数：清除搜索历史
 export function clearSearchHistory() {
-  if (typeof window !== 'undefined' && (window as any).__searchHistoryAPI) {
-    (window as any).__searchHistoryAPI.clearHistory();
+  if (typeof window !== 'undefined' && window.__searchHistoryAPI?.clearHistory) {
+    window.__searchHistoryAPI.clearHistory();
   }
 }

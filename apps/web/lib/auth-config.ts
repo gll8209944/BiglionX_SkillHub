@@ -1,18 +1,22 @@
 import NextAuth from 'next-auth';
 import GitHub from 'next-auth/providers/github';
+import Resend from 'next-auth/providers/resend';
 import Credentials from 'next-auth/providers/credentials';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/lib/prisma';
 import bcrypt from 'bcryptjs';
 
 // NextAuth 配置（用于 server-side 调用）
-export const { auth, signIn, signOut } = NextAuth({
+const nextAuth = NextAuth({
   adapter: PrismaAdapter(prisma),
-  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID || '',
       clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
+    }),
+    Resend({
+      apiKey: process.env.RESEND_API_KEY || '',
+      from: process.env.EMAIL_FROM || 'SkillHub <noreply@skillhub.com>',
     }),
     Credentials({
       name: 'Credentials',
@@ -90,3 +94,5 @@ export const { auth, signIn, signOut } = NextAuth({
     },
   },
 });
+
+export const { auth, signIn, signOut, handlers } = nextAuth;

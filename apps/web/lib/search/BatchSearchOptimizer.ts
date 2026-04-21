@@ -1,4 +1,12 @@
 import { prisma } from '@/lib/prisma';
+import type { Skill } from '@prisma/client';
+
+// 定义搜索结果的类型（包含相似度分数）
+interface SearchResult extends Omit<Skill, 'embeddingVector' | 'embedding'> {
+  embeddingVector?: number[] | null;
+  embedding?: unknown;
+  similarity?: number;
+}
 
 /**
  * 批量搜索优化服务
@@ -10,14 +18,14 @@ export class BatchSearchOptimizer {
    * 批量获取Skills（优化版）
    * 使用单次查询替代多次查询，减少数据库往返
    */
-  async batchGetSkills(skillIds: string[]): Promise<any[]> {
+  async batchGetSkills(skillIds: string[]): Promise<Partial<Skill>[]> {
     if (skillIds.length === 0) {
       return [];
     }
 
     // 分批查询，避免单次查询过大
     const batchSize = 100;
-    const allSkills: any[] = [];
+    const allSkills: Partial<Skill>[] = [];
 
     for (let i = 0; i < skillIds.length; i += batchSize) {
       const batch = skillIds.slice(i, i + batchSize);
@@ -68,7 +76,7 @@ export class BatchSearchOptimizer {
       language?: string;
       source?: string;
     } = {}
-  ): Promise<any[]> {
+  ): Promise<SearchResult[]> {
     const {
       limit = 20,
       minSimilarity = 0.3,
@@ -80,6 +88,7 @@ export class BatchSearchOptimizer {
     try {
       // 构建WHERE条件
       const whereConditions: string[] = ['status = $1', '"embeddingVector" IS NOT NULL'];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const params: any[] = ['APPROVED'];
       let paramIndex = 2;
 
@@ -125,7 +134,7 @@ export class BatchSearchOptimizer {
         limit
       );
 
-      const results = await prisma.$queryRawUnsafe(query, ...params) as any[];
+      const results = await prisma.$queryRawUnsafe(query, ...params) as SearchResult[];
       
       console.log(`🚀 [pgvector] 向量搜索完成，返回 ${results.length} 个结果`);
       
@@ -150,7 +159,7 @@ export class BatchSearchOptimizer {
       language?: string;
       source?: string;
     } = {}
-  ): Promise<any[]> {
+  ): Promise<SearchResult[]> {
     const {
       limit = 20,
       minSimilarity = 0.3,
@@ -160,9 +169,14 @@ export class BatchSearchOptimizer {
     } = options;
 
     // 构建查询条件
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       status: 'APPROVED',
-      embeddingVector: { not: null },
+      // 优先使用 embeddingVector，如果为空则使用 embedding
+      OR: [
+        { embeddingVector: { not: { equals: [] } } },
+        { embedding: { not: null } }
+      ]
     };
 
     if (category) where.category = category;
@@ -190,17 +204,24 @@ export class BatchSearchOptimizer {
         source: true,
         updatedAt: true,
         embeddingVector: true,
+        embedding: true, // Include JSON embedding for fallback
       },
     });
 
     // 在应用层计算相似度
     const results = candidates
       .map(skill => {
-        if (!skill.embeddingVector) return null;
+        // Support both embeddingVector and JSON embedding
+        let vector: number[] | null = skill.embeddingVector as unknown as number[];
+        if (!vector || (Array.isArray(vector) && vector.length === 0)) {
+          vector = skill.embedding as unknown as number[];
+        }
+        
+        if (!vector || !Array.isArray(vector)) return null;
 
         const similarity = this.calculateCosineSimilarity(
           queryEmbedding,
-          skill.embeddingVector
+          vector
         );
 
         if (similarity < minSimilarity) return null;
@@ -208,10 +229,10 @@ export class BatchSearchOptimizer {
         return {
           ...skill,
           similarity,
-        };
+        } as SearchResult;
       })
       .filter((result): result is NonNullable<typeof result> => result !== null)
-      .sort((a, b) => b.similarity - a.similarity)
+      .sort((a, b) => (b.similarity || 0) - (a.similarity || 0))
       .slice(0, limit);
 
     console.log(`🔄 [Fallback] 应用层向量搜索完成，返回 ${results.length} 个结果`);

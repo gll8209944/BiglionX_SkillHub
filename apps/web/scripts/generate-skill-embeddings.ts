@@ -29,7 +29,7 @@ async function generateEmbeddingsForSkills() {
         readme: true,
         embedding: true, // 检查是否已有embedding
       },
-      take: 50, // 先处理前50个作为测试
+      // 移除take限制，处理所有技能
     });
     
     console.log(`✅ 找到 ${skills.length} 个Skills\n`);

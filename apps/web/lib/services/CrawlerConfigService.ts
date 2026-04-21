@@ -134,17 +134,22 @@ export class CrawlerConfigService {
    * 获取当前配置
    */
   async getConfig(): Promise<CrawlerConfigData> {
-    const config = await prisma.crawlerConfig.findUnique({
-      where: { configKey: 'crawler_settings' },
-    });
+    try {
+      const config = await prisma.crawlerConfig.findUnique({
+        where: { configKey: 'crawler_settings' },
+      });
 
-    if (!config) {
-      // 如果不存在，创建默认配置
-      await this.saveConfig(DEFAULT_CONFIG);
+      if (!config) {
+        // 如果不存在，创建默认配置
+        await this.saveConfig(DEFAULT_CONFIG);
+        return DEFAULT_CONFIG;
+      }
+
+      return config.configValue as unknown as CrawlerConfigData;
+    } catch (error) {
+      console.warn('⚠️ Database not available, using default configuration:', error);
       return DEFAULT_CONFIG;
     }
-
-    return config.configValue as unknown as CrawlerConfigData;
   }
 
   /**
