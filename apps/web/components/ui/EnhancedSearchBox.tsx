@@ -31,6 +31,7 @@ export default function EnhancedSearchBox({
   const [useSemanticSearch, setUseSemanticSearch] = useState(enableSemanticSearch);
   const suggestionRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 防抖获取搜索建议
   const fetchSuggestions = useCallback(async (q: string) => {
@@ -53,42 +54,29 @@ export default function EnhancedSearchBox({
     }
   }, []);
 
-  // 原生防抖函数
-  const debounce = <T extends (...args: any[]) => any>(
-    func: T,
-    wait: number
-  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
-    let timeout: ReturnType<typeof setTimeout> | null = null;
-    
-    const debounced = (...debounceArgs: Parameters<T>) => {
-      if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => func(...debounceArgs), wait);
-    };
-    
-    debounced.cancel = () => {
-      if (timeout) clearTimeout(timeout);
-    };
-    
-    return debounced;
-  };
-
   // 使用防抖获取搜索建议
-  const debouncedFetch = useCallback(
-    debounce((q: string) => fetchSuggestions(q), 300),
-    [fetchSuggestions]
-  );
-
   useEffect(() => {
     if (query.length >= 2) {
-      debouncedFetch(query);
+      // 清除之前的定时器
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      // 设置新的定时器
+      debounceTimerRef.current = setTimeout(() => {
+        fetchSuggestions(query);
+      }, 300);
     } else {
       setSuggestions([]);
     }
     
+    // 清理函数
     return () => {
-      debouncedFetch.cancel();
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
     };
-  }, [query, debouncedFetch]);
+  }, [query, fetchSuggestions]);
 
   // 点击外部关闭建议列表
   useEffect(() => {
