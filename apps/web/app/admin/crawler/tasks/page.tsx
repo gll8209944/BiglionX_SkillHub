@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import Link from 'next/link';
 
+// 强制动态渲染，避免在构建时访问数据库
+export const dynamic = 'force-dynamic';
+
 interface TasksPageProps {
   searchParams: {
     page?: string;

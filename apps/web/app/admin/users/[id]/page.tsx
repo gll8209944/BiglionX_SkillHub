@@ -3,6 +3,9 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 
+// 强制动态渲染，避免在构建时访问数据库
+export const dynamic = 'force-dynamic';
+
 interface UserDetailPageProps {
   params: {
     id: string;

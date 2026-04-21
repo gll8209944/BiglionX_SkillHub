@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import CrawlerSettingsClient from './CrawlerSettingsClient';
 
+// 强制动态渲染，避免在构建时访问数据库
+export const dynamic = 'force-dynamic';
+
 export default async function CrawlerSettingsPage() {
   // 获取爬虫任务统计信息
   const [
