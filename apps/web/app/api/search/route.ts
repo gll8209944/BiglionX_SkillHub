@@ -3,6 +3,9 @@ import { SearchService } from '@/lib/search/SearchService';
 
 const searchService = new SearchService();
 
+// 标记为动态路由，避免静态生成时的问题
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/search
  * 

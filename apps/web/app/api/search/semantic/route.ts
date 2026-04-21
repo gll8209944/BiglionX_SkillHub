@@ -2,6 +2,9 @@ import { NextRequest } from 'next/server';
 import { semanticSearchService } from '@/lib/search/SemanticSearchService';
 import { successResponse, errorResponse } from '@/lib/api-response';
 
+// 标记为动态路由，避免静态生成时的问题
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/search/semantic
  * 执行语义搜索
