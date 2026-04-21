@@ -50,13 +50,14 @@ export default function SearchBox({
   }, []);
 
   // 原生防抖函数
-  const debounce = (func: (..._a: any[]) => void, wait: number) => {
+  // eslint-disable-next-line no-unused-vars
+  const debounce = <T extends (...args: any[]) => void>(func: T, wait: number) => {
     let timeout: ReturnType<typeof setTimeout> | null = null;
     
-    return ((..._args: any[]) => {
+    return ((..._debounceArgs: Parameters<T>) => {
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => func(..._args), wait);
-    }) as typeof func & { cancel: () => void };
+      timeout = setTimeout(() => func(..._debounceArgs), wait);
+    }) as T & { cancel: () => void };
   };
 
   // 使用防抖获取搜索建议
