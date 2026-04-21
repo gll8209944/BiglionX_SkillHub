@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, FormEvent, KeyboardEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Suggestion {
@@ -50,23 +50,13 @@ export default function SearchBox({
   }, []);
 
   // 原生防抖函数
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const debounce = <T extends (...args: any[]) => any>(
-    func: T,
-    wait: number
-  ): ((...args: Parameters<T>) => void) & { cancel: () => void } => {
-    let timeout: NodeJS.Timeout | null = null;
+  const debounce = (func: (..._a: any[]) => void, wait: number) => {
+    let timeout: ReturnType<typeof setTimeout> | null = null;
     
-    const debounced = (...args: Parameters<T>) => {
+    return ((..._args: any[]) => {
       if (timeout) clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
-    };
-    
-    debounced.cancel = () => {
-      if (timeout) clearTimeout(timeout);
-    };
-    
-    return debounced;
+      timeout = setTimeout(() => func(..._args), wait);
+    }) as typeof func & { cancel: () => void };
   };
 
   // 使用防抖获取搜索建议
@@ -104,7 +94,7 @@ export default function SearchBox({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       // 添加到搜索历史
@@ -129,7 +119,7 @@ export default function SearchBox({
     setShowSuggestions(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       setShowSuggestions(false);
     }
