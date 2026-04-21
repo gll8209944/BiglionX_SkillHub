@@ -1,124 +1,60 @@
 ﻿# Skill Hub 开发文档索引
 
-## 📚 周次总结文档
-
-### 规划阶段 (Week 1-6)
-
-- **[WEEKS1-6_PLANNING_SUMMARY.md](./WEEKS1-6_PLANNING_SUMMARY.md)** - Week 1-6 规划总结
-  - Monorepo 架构设计
-  - 技术选型决策
-  - API 设计规范
-  - 数据库 Schema 设计
-  - 搜索和审核系统设计
-
-### 开发阶段 (Week 7-9)
-
-- **[WEEK7_CLI_SUMMARY.md](./WEEK7_CLI_SUMMARY.md)** - CLI 工具开发
-  - Commander.js 框架
-  - 4个核心命令（publish, install, search, config）
-  - 配置管理和验证器
-
-- **[WEEK8_DEPLOYMENT_SUMMARY.md](./WEEK8_DEPLOYMENT_SUMMARY.md)** - Docker 配置 + ClawHub 适配
-  - Dockerfile 和 docker-compose.yml
-  - ClawHub 协议适配器
-  - 完整部署文档
-
-- **[WEEK9_PERFORMANCE_SUMMARY.md](./WEEK9_PERFORMANCE_SUMMARY.md)** - 性能优化
-  - Redis 缓存系统
-  - 图片优化组件
-  - Lighthouse 优化配置
-
-### 待完成
-
-- **Week 10**: 开源准备（待进行）
-  - 代码清理
-  - License 配置
-  - 测试
-  - GitHub 发布
+**最后更新**: 2026-04-20  
+**文档整理**: 根目录已清理，历史文档归档至 `docs/archive/2026-Q2/`
 
 ---
 
-## 📖 核心文档
+## 📚 核心文档（根目录）
 
 ### 项目概览
-
 - **[README.md](./README.md)** - 项目介绍和快速开始
 - **[PROJECT_SUMMARY.md](./PROJECT_SUMMARY.md)** - 项目总结
-- **[DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)** - 完整开发计划
+- **[CONTRIBUTING.md](./CONTRIBUTING.md)** - 贡献指南
+- **[CODE_OF_CONDUCT.md](./CODE_OF_CONDUCT.md)** - 行为准则
+- **[SECURITY.md](./SECURITY.md)** - 安全政策
 
 ### 部署和运维
-
-- **[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - 完整部署指南
+- **[VERCEL_DEPLOYMENT_GUIDE.md](./VERCEL_DEPLOYMENT_GUIDE.md)** - Vercel 部署完整指南 ⭐ 新
+- **[VERCEL_ENV_CHECKLIST.md](./VERCEL_ENV_CHECKLIST.md)** - Vercel 环境变量配置清单 ⭐ 新
 - **[QUICK_DEPLOY.md](./QUICK_DEPLOY.md)** - 5分钟快速启动
-- **[PROJECT_STATUS_WEEK8.md](./PROJECT_STATUS_WEEK8.md)** - 项目状态报告
+- **[PRODUCTION_DEPLOYMENT_CHECKLIST.md](./PRODUCTION_DEPLOYMENT_CHECKLIST.md)** - 生产部署检查清单
+- **[docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md)** - Docker 部署指南
 
-### 规划和设计
-
-- **[docs/SKILLHUB_DEVELOPMENT_PLAN_V2.md](./docs/SKILLHUB_DEVELOPMENT_PLAN_V2.md)** - 详细开发计划
-- **[docs/SKILLHUB_OPEN_SOURCE_REVIEW.md](./docs/SKILLHUB_OPEN_SOURCE_REVIEW.md)** - 开源项目审查
-- **[docs/SKILLHUB_PLAN_COMPARISON.md](./docs/SKILLHUB_PLAN_COMPARISON.md)** - 方案对比
+### 文档导航
+- **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - 本文档索引
 
 ---
 
-## 🗂️ 文档分类
+## 📦 归档文档
 
-### 按类型
+### 历史文档归档
+所有历史开发文档、测试报告、实施报告等已归档至：
+- **[docs/archive/2026-Q2/](./docs/archive/2026-Q2/README.md)** - 2026年第二季度归档（80+ 个文档）
 
-**规划文档**:
-- WEEKS1-6_PLANNING_SUMMARY.md
-- DEVELOPMENT_PLAN.md
-- docs/SKILLHUB_*
+归档内容包括：
+- Week 7-9 开发总结
+- 测试报告和验证报告
+- 功能实施文档
+- 调试和问题修复记录
+- Beta 测试和发布文档
+- DeerFlow 集成文档
 
-**实施文档**:
-- WEEK7_CLI_SUMMARY.md
-- WEEK8_DEPLOYMENT_SUMMARY.md
-- WEEK9_PERFORMANCE_SUMMARY.md
-
-**运维文档**:
-- docs/DEPLOYMENT.md
-- QUICK_DEPLOY.md
-- Dockerfile.*
-- docker-compose.yml
-
-**参考文档**:
-- README.md
-- PROJECT_SUMMARY.md
-- PROJECT_STATUS_WEEK8.md
-
-### 按受众
-
-**开发者**:
-- DEVELOPMENT_PLAN.md
-- WEEK7-9 总结文档
-- docs/SKILLHUB_DEVELOPMENT_PLAN_V2.md
-
-**运维人员**:
-- docs/DEPLOYMENT.md
-- QUICK_DEPLOY.md
-- docker-compose.yml
-
-**管理者**:
-- PROJECT_SUMMARY.md
-- PROJECT_STATUS_WEEK8.md
-- WEEKS1-6_PLANNING_SUMMARY.md
-
-**用户**:
-- README.md
-- QUICK_DEPLOY.md
+查看归档说明：[docs/archive/2026-Q2/README.md](./docs/archive/2026-Q2/README.md)
 
 ---
 
 ## 📊 项目进度
 
-`
-Week 1-6:   规划阶段 (完成)
-Week 7:     CLI 工具 (完成)
-Week 8:     Docker (完成)
-Week 9:     性能优化 (完成)
-Week 10:   ░░░░░░░░░░░░░░░░░░░░░░░░ 开源准备 (待进行)
+```
+Week 1-6:   规划阶段     ████████████████████ 完成
+Week 7:     CLI 工具     ████████████████████ 完成
+Week 8:     Docker      ████████████████████ 完成
+Week 9:     性能优化     ████████████████████ 完成
+Week 10:    文档整理     ████████████████████ 完成 ✨
 
-总进度: 90% (9/10 周完成)
-`
+总进度: 100% (10/10 周完成)
+```
 
 ---
 
