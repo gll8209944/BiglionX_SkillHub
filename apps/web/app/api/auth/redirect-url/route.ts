@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { auth } from '@/lib/auth-config';
 
+// 强制动态渲染，因为使用了 auth() 和 headers()
+export const dynamic = 'force-dynamic';
+
 /**
  * GET /api/auth/redirect-url
  * 根据用户角色返回合适的重定向URL
