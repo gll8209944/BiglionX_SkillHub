@@ -7,10 +7,18 @@ import { OpenAI } from 'openai';
  * 未来可以迁移到支持pgvector的数据库（如Supabase）以启用向量搜索
  */
 export class EmbeddingService {
-  private openai: OpenAI;
-  private provider: 'deepseek' | 'zhipu' | 'openai';
+  private openai: OpenAI | null = null;
+  private provider: 'deepseek' | 'zhipu' | 'openai' = 'openai';
   
-  constructor() {
+  /**
+   * 懒加载 OpenAI 客户端
+   * 只在首次使用时初始化，避免构建时失败
+   */
+  private getOpenAIClient(): OpenAI {
+    if (this.openai) {
+      return this.openai;
+    }
+    
     const apiKey = process.env.OPENAI_API_KEY;
     
     if (!apiKey) {
@@ -49,7 +57,7 @@ export class EmbeddingService {
       });
     }
     
-    console.log(`🔧 EmbeddingService 初始化完成 - 提供商: ${this.provider}`);
+    return this.openai;
   }
   
   /**
@@ -80,7 +88,7 @@ export class EmbeddingService {
       
       console.log(`📊 生成Embeddings - 模型: ${model}, 文本长度: ${truncatedText.length}`);
       
-      const response = await this.openai.embeddings.create({
+      const response = await this.getOpenAIClient().embeddings.create({
         model,
         input: truncatedText,
         encoding_format: 'float',
@@ -112,7 +120,7 @@ export class EmbeddingService {
         const model = this.getModelName();
         console.log(`📊 批量生成Embeddings - 批次: ${i / batchSize + 1}, 模型: ${model}`);
         
-        const response = await this.openai.embeddings.create({
+        const response = await this.getOpenAIClient().embeddings.create({
           model,
           input: batch.map(text => this.truncateText(text, 8000)),
           encoding_format: 'float',
