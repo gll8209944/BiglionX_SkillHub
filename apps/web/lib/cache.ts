@@ -1,5 +1,5 @@
 ﻿import { NextRequest, NextResponse } from 'next/server';
-import { redisCache } from './redis';
+import { redisCache } from './redis-vercel';
 
 type HandlerFunction = (request: NextRequest, ...args: unknown[]) => Promise<NextResponse>;
 

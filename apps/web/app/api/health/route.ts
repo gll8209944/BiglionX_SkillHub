@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { redisCache } from '@/lib/redis';
+import { redisCache } from '@/lib/redis-vercel';
 
 // 强制动态渲染，避免构建时尝试连接外部服务
 export const dynamic = 'force-dynamic';
