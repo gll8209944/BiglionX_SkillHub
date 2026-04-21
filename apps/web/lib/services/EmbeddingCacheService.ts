@@ -172,11 +172,11 @@ export class EmbeddingCacheService {
    * @param filters - 过滤条件JSON字符串
    * @returns 缓存的搜索结果或null
    */
-  async getSearchResult(query: string, filters: string): Promise<any | null> {
+  async getSearchResult(query: string, filters: string): Promise<unknown | null> {
     const cacheKey = this.getSearchResultCacheKey(query, filters);
     
     // 1. 尝试从内存缓存获取
-    const memoryResult = this.memoryCache.get<any>(cacheKey);
+    const memoryResult = this.memoryCache.get(cacheKey);
     if (memoryResult) {
       console.log('💾 [L1] 搜索结果内存缓存命中');
       return memoryResult;
@@ -209,7 +209,7 @@ export class EmbeddingCacheService {
    * @param filters - 过滤条件
    * @param result - 搜索结果
    */
-  async setSearchResult(query: string, filters: string, result: any): Promise<void> {
+  async setSearchResult(query: string, filters: string, result: unknown): Promise<void> {
     const cacheKey = this.getSearchResultCacheKey(query, filters);
     
     // 1. 设置内存缓存
