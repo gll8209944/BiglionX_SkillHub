@@ -1,6 +1,7 @@
 import cron, { ScheduledTask } from 'node-cron';
 import { SkillsImportService } from './SkillsImportService';
 import { CrawlerService } from './CrawlerService';
+import { getCrawlerConfigService, type CrawlerConfigData } from './CrawlerConfigService';
 
 /**
  * 定时任务调度器
@@ -10,30 +11,53 @@ import { CrawlerService } from './CrawlerService';
 export class TaskScheduler {
   private skillsImportService: SkillsImportService;
   private crawlerService: CrawlerService;
+  private configService: ReturnType<typeof getCrawlerConfigService>;
   private scheduledTasks: ScheduledTask[] = [];
+  private config: CrawlerConfigData | null = null;
 
   constructor() {
     this.skillsImportService = new SkillsImportService();
     this.crawlerService = new CrawlerService();
+    this.configService = getCrawlerConfigService();
   }
 
   /**
    * 启动所有定时任务
    */
-  start(): void {
+  async start(): Promise<void> {
     console.log('🕒 Starting task scheduler...');
 
-    // 1. 每日凌晨 3 点执行 SkillsMP 增量同步
-    this.scheduleDailySync();
+    // 加载配置
+    try {
+      this.config = await this.configService.getConfig();
+      console.log('✅ Configuration loaded from database');
+    } catch (error) {
+      console.error('❌ Failed to load configuration, using defaults:', error);
+      // 继续使用默认配置
+    }
 
-    // 2. 每周日凌晨 2 点执行 GitHub 全量同步
-    this.scheduleWeeklyFullSync();
+    const scheduleConfig = this.config?.schedule;
+    const dataSourceConfig = this.config?.dataSources;
 
-    // 3. 每 6 小时重试失败的爬取任务
+    // 检查定时任务是否启用
+    if (scheduleConfig?.enabled) {
+      console.log(`✓ Schedule enabled with cron: ${scheduleConfig.cronExpression}`);
+
+      // 1. 如果 GitHub 数据源启用，执行 GitHub 爬虫任务
+      if (dataSourceConfig?.github.enabled) {
+        this.scheduleGitHubCrawl();
+      }
+
+      // 2. 如果 SkillsMP 数据源启用，执行 SkillsMP 同步
+      if (dataSourceConfig?.skillsmp.enabled) {
+        this.scheduleSkillsMPSync();
+      }
+    } else {
+      console.log('⚠️  Schedule disabled in configuration');
+    }
+
+    // 3. 每 6 小时重试失败的爬取任务（始终启用）
     this.scheduleRetryFailedTasks();
-
-    // 4. 每小时检查 trending skills
-    this.scheduleTrendingUpdate();
 
     console.log('✅ Task scheduler started');
   }
@@ -51,12 +75,72 @@ export class TaskScheduler {
   }
 
   /**
-   * 每日增量同步（SkillsMP）
-   * 时间：每天凌晨 3:00
+   * GitHub 爬虫任务（根据配置的 Cron 表达式）
    */
-  private scheduleDailySync(): void {
-    const task = cron.schedule('0 3 * * *', async () => {
-      console.log('\n⏰ Running daily SkillsMP sync...');
+  private scheduleGitHubCrawl(): void {
+    const cronExpression = this.config?.schedule.cronExpression || '0 3 * * *';
+    const timezone = this.config?.schedule.timezone || 'Asia/Shanghai';
+    const githubConfig = this.config?.dataSources.github;
+
+    const task = cron.schedule(cronExpression, async () => {
+      console.log('\n⏰ Running scheduled GitHub crawl...');
+      
+      try {
+        // 使用配置的搜索查询
+        const searchQueries = githubConfig?.searchQueries || ['skill.md', 'agent skill', 'ai tool'];
+        const minStars = githubConfig?.minStars || 30;
+        const maxResults = githubConfig?.maxResults || 50;
+        const requireSkillMd = this.config?.filters.requireSkillMd ?? true;
+        const excludeArchived = this.config?.filters.excludeArchived ?? true;
+
+        console.log(`   Search queries: ${searchQueries.join(', ')}`);
+        console.log(`   Min stars: ${minStars}`);
+        console.log(`   Max results: ${maxResults}`);
+        console.log(`   Require SKILL.md: ${requireSkillMd}`);
+        console.log(`   Exclude archived: ${excludeArchived}`);
+
+        let totalDiscovered = 0;
+        let totalCrawled = 0;
+        let totalFailed = 0;
+
+        for (const query of searchQueries) {
+          const result = await this.crawlerService.searchAndCrawl(query, {
+            minStars,
+            limit: maxResults,
+          });
+
+          totalDiscovered += result.discovered;
+          totalCrawled += result.crawled;
+          totalFailed += result.failed;
+        }
+
+        console.log(`✅ GitHub crawl completed:`);
+        console.log(`   Discovered: ${totalDiscovered}`);
+        console.log(`   Crawled: ${totalCrawled}`);
+        console.log(`   Failed: ${totalFailed}\n`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ GitHub crawl failed:', errorMessage);
+        await this.sendAlert('GitHub Crawl Failed', errorMessage);
+      }
+    }, {
+      timezone,
+    });
+
+    this.scheduledTasks.push(task);
+    console.log(`✓ Scheduled: GitHub crawl with expression "${cronExpression}" (${timezone})`);
+  }
+
+  /**
+   * SkillsMP 同步任务（根据配置的 Cron 表达式，每天执行）
+   */
+  private scheduleSkillsMPSync(): void {
+    // SkillsMP 使用固定的每天执行时间（可以后续优化为可配置）
+    const cronExpression = '0 4 * * *'; // 凌晨 4 点
+    const timezone = this.config?.schedule.timezone || 'Asia/Shanghai';
+
+    const task = cron.schedule(cronExpression, async () => {
+      console.log('\n⏰ Running scheduled SkillsMP sync...');
       
       try {
         // 计算上次同步时间（24小时前）
@@ -64,46 +148,18 @@ export class TaskScheduler {
         
         const updatedCount = await this.skillsImportService.incrementalUpdate(since);
         
-        console.log(`✅ Daily sync completed: ${updatedCount} skills updated\n`);
+        console.log(`✅ SkillsMP sync completed: ${updatedCount} skills updated\n`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('❌ Daily sync failed:', errorMessage);
-        await this.sendAlert('Daily SkillsMP Sync Failed', errorMessage);
+        console.error('❌ SkillsMP sync failed:', errorMessage);
+        await this.sendAlert('SkillsMP Sync Failed', errorMessage);
       }
     }, {
-      timezone: 'Asia/Shanghai',
+      timezone,
     });
 
     this.scheduledTasks.push(task);
-    console.log('✓ Scheduled: Daily SkillsMP sync at 03:00');
-  }
-
-  /**
-   * 每周全量同步（GitHub）
-   * 时间：每周日凌晨 2:00
-   */
-  private scheduleWeeklyFullSync(): void {
-    const task = cron.schedule('0 2 * * 0', async () => {
-      console.log('\n⏰ Running weekly full sync...');
-      
-      try {
-        const result = await this.crawlerService.performFullSync();
-        
-        console.log(`✅ Weekly full sync completed:`);
-        console.log(`   Total discovered: ${result.total}`);
-        console.log(`   Successfully crawled: ${result.success}`);
-        console.log(`   Failed: ${result.failed}\n`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        console.error('❌ Weekly full sync failed:', errorMessage);
-        await this.sendAlert('Weekly Full Sync Failed', errorMessage);
-      }
-    }, {
-      timezone: 'Asia/Shanghai',
-    });
-
-    this.scheduledTasks.push(task);
-    console.log('✓ Scheduled: Weekly GitHub full sync on Sunday at 02:00');
+    console.log(`✓ Scheduled: SkillsMP sync at 04:00 (${timezone})`);
   }
 
   /**
@@ -237,9 +293,9 @@ export function getScheduler(): TaskScheduler {
 /**
  * 启动调度器（在应用启动时调用）
  */
-export function startScheduler(): void {
+export async function startScheduler(): Promise<void> {
   const scheduler = getScheduler();
-  scheduler.start();
+  await scheduler.start();
 }
 
 /**

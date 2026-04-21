@@ -182,47 +182,6 @@ export default async function AdminPage() {
         </div>
       </div>
 
-      {/* 快速操作 */}
-      <div className="bg-linear-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg p-6 text-white">
-        <h3 className="text-lg font-semibold mb-4">快速操作</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link
-            href="/admin/reviews"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
-          >
-            <div className="font-medium">审核 Skills</div>
-            <div className="text-sm text-white/80 mt-1">查看待审核的技能</div>
-          </Link>
-          <Link
-            href="/admin/users"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
-          >
-            <div className="font-medium">用户管理</div>
-            <div className="text-sm text-white/80 mt-1">管理平台用户</div>
-          </Link>
-          <Link
-            href="/admin/audit-logs"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
-          >
-            <div className="font-medium">查看审计日志</div>
-            <div className="text-sm text-white/80 mt-1">监控系统活动</div>
-          </Link>
-          <Link
-            href="/admin/analytics"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
-          >
-            <div className="font-medium">数据分析</div>
-            <div className="text-sm text-white/80 mt-1">查看详细统计</div>
-          </Link>
-          <Link
-            href="/admin/crawler"
-            className="bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-lg p-4 transition-colors"
-          >
-            <div className="font-medium">爬虫设置</div>
-            <div className="text-sm text-white/80 mt-1">管理数据采集任务</div>
-          </Link>
-        </div>
-      </div>
     </div>
   );
 }

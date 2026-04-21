@@ -19,7 +19,11 @@ export async function register() {
     console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Configured' : '❌ Missing'}`);
     console.log('');
     
-    startScheduler();
-    console.log('\n✅ Task Scheduler initialized successfully\n');
+    // Fire and forget - don't await to avoid blocking server startup
+    startScheduler().then(() => {
+      console.log('\n✅ Task Scheduler initialized successfully\n');
+    }).catch((error) => {
+      console.error('\n❌ Task Scheduler initialization failed:', error);
+    });
   }
 }

@@ -1,0 +1,187 @@
+name: Scheduled Crawler Tasks
+
+on:
+  # 定时任务配置（使用 UTC 时间）
+  schedule:
+    # 北京时间凌晨 3:00 = UTC 19:00（前一天）
+    - cron: '0 19 * * *'  # GitHub 爬虫
+    # 北京时间凌晨 4:00 = UTC 20:00（前一天）
+    - cron: '0 20 * * *'  # SkillsMP 同步
+  
+  # 允许手动触发
+  workflow_dispatch:
+    inputs:
+      task:
+        description: '要执行的任务'
+        required: true
+        type: choice
+        options:
+          - crawler
+          - sync
+          - both
+        default: 'both'
+
+jobs:
+  # GitHub 爬虫任务
+  crawl-github:
+    if: github.event_name == 'schedule' || github.event.inputs.task == 'crawler' || github.event.inputs.task == 'both'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检查配置
+        run: |
+          if [ -z "${{ secrets.SKILLHUB_BASE_URL }}" ]; then
+            echo "❌ 错误：未配置 SKILLHUB_BASE_URL secret"
+            echo "请在仓库 Settings → Secrets and variables → Actions 中添加："
+            echo "  - SKILLHUB_BASE_URL: 您的网站地址（例如 https://skillhub.com）"
+            echo "  - CRON_SECRET（可选）: 安全密钥"
+            exit 1
+          fi
+          echo "✅ 配置检查通过"
+      
+      - name: 执行 GitHub 爬虫
+        id: crawler
+        run: |
+          echo "🕒 开始执行 GitHub 爬虫任务..."
+          echo "时间: $(date -u)"
+          
+          # 构建请求头
+          HEADERS="Content-Type: application/json"
+          if [ -n "${{ secrets.CRON_SECRET }}" ]; then
+            HEADERS="$HEADERS,Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          fi
+          
+          # 发送请求
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "$HEADERS" \
+            "${{ secrets.SKILLHUB_BASE_URL }}/api/cron/crawler")
+          
+          # 分离响应体和状态码
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "响应状态码: $HTTP_CODE"
+          echo "响应内容:"
+          echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+          
+          # 保存结果
+          echo "response_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$RESPONSE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # 检查是否成功
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ 爬虫任务失败"
+            exit 1
+          fi
+          
+          echo "✅ 爬虫任务完成"
+      
+      - name: 输出执行摘要
+        if: always()
+        run: |
+          echo "## 📊 GitHub 爬虫执行摘要" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **执行时间**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **状态**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ steps.crawler.outputs.response_body }}" ]; then
+            echo "### 详细结果" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.crawler.outputs.response_body }}" | jq . 2>/dev/null || echo "${{ steps.crawler.outputs.response_body }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # SkillsMP 同步任务
+  sync-skillsmp:
+    if: github.event_name == 'schedule' || github.event.inputs.task == 'sync' || github.event.inputs.task == 'both'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 检查配置
+        run: |
+          if [ -z "${{ secrets.SKILLHUB_BASE_URL }}" ]; then
+            echo "❌ 错误：未配置 SKILLHUB_BASE_URL secret"
+            exit 1
+          fi
+          echo "✅ 配置检查通过"
+      
+      - name: 执行 SkillsMP 同步
+        id: sync
+        run: |
+          echo "🕒 开始执行 SkillsMP 同步任务..."
+          echo "时间: $(date -u)"
+          
+          # 构建请求头
+          HEADERS="Content-Type: application/json"
+          if [ -n "${{ secrets.CRON_SECRET }}" ]; then
+            HEADERS="$HEADERS,Authorization: Bearer ${{ secrets.CRON_SECRET }}"
+          fi
+          
+          # 发送请求
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "$HEADERS" \
+            "${{ secrets.SKILLHUB_BASE_URL }}/api/cron/sync")
+          
+          # 分离响应体和状态码
+          HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+          RESPONSE_BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "响应状态码: $HTTP_CODE"
+          echo "响应内容:"
+          echo "$RESPONSE_BODY" | jq . || echo "$RESPONSE_BODY"
+          
+          # 保存结果
+          echo "response_body<<EOF" >> $GITHUB_OUTPUT
+          echo "$RESPONSE_BODY" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # 检查是否成功
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "❌ 同步任务失败"
+            exit 1
+          fi
+          
+          echo "✅ 同步任务完成"
+      
+      - name: 输出执行摘要
+        if: always()
+        run: |
+          echo "## 📊 SkillsMP 同步执行摘要" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **执行时间**: $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "- **状态**: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "${{ steps.sync.outputs.response_body }}" ]; then
+            echo "### 详细结果" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo '```json' >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.sync.outputs.response_body }}" | jq . 2>/dev/null || echo "${{ steps.sync.outputs.response_body }}" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
+
+  # 通知任务（可选）
+  notify:
+    needs: [crawl-github, sync-skillsmp]
+    if: always() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 发送执行结果通知
+        run: |
+          echo "📢 定时任务执行完成"
+          echo ""
+          echo "任务状态："
+          echo "  - GitHub 爬虫: ${{ needs.crawl-github.result }}"
+          echo "  - SkillsMP 同步: ${{ needs.sync-skillsmp.result }}"
+          echo ""
+          echo "⚠️  如需通知功能，可在此步骤添加："
+          echo "  - Slack 通知"
+          echo "  - 钉钉机器人"
+          echo "  - 企业微信"
+          echo "  - 邮件通知"

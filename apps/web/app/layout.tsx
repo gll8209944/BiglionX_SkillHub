@@ -20,9 +20,13 @@ if (typeof window === 'undefined' && !schedulerStarted) {
   console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Configured' : '❌ Missing'}`);
   console.log('');
   
-  startScheduler();
+  // Fire and forget - don't await to avoid blocking layout rendering
+  startScheduler().then(() => {
+    console.log('\n✅ Task Scheduler initialized successfully from Layout\n');
+  }).catch((error) => {
+    console.error('\n❌ Task Scheduler initialization failed:', error);
+  });
   schedulerStarted = true;
-  console.log('\n✅ Task Scheduler initialized successfully from Layout\n');
 }
 
 export const metadata: Metadata = {
