@@ -15,7 +15,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
-        "NODE_ENV"
+        "NODE_ENV",
+        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
+        "CYPRESS_INSTALL_BINARY"
       ]
     },
     "@skillhub/cli#build": {
@@ -32,7 +34,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
-        "NODE_ENV"
+        "NODE_ENV",
+        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
+        "CYPRESS_INSTALL_BINARY"
       ]
     },
     "web#build": {
@@ -49,7 +53,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
-        "NODE_ENV"
+        "NODE_ENV",
+        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
+        "CYPRESS_INSTALL_BINARY"
       ]
     },
     "lint": {},
