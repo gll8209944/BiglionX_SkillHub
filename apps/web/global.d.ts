@@ -3,22 +3,14 @@
  * 全局类型定义
  */
 
-// CSS 模块类型声明
-declare module '*.css' {
-  const content: string;
-  export default content;
-}
-
+// CSS 文件和 CSS 模块类型声明
+// 支持 side-effect import (import './globals.css') 和 CSS Modules (import styles from './file.module.css')
+declare module '*.css';
 declare module '*.module.css' {
   const classes: { [key: string]: string };
   export default classes;
 }
-
-declare module '*.scss' {
-  const content: string;
-  export default content;
-}
-
+declare module '*.scss';
 declare module '*.module.scss' {
   const classes: { [key: string]: string };
   export default classes;
