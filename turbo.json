@@ -4,7 +4,17 @@
     "build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["DATABASE_URL", "NEXTAUTH_URL", "NEXTAUTH_SECRET"]
+      "env": [
+        "DATABASE_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "SKILLSMP_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
+        "NODE_ENV"
+      ]
     },
     "lint": {},
     "test": {},
