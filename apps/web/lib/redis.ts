@@ -47,10 +47,13 @@ class RedisCache {
     }
   }
 
-  public async get(key: string): Promise<any> {
+  public async get(key: string): Promise<unknown> {
     if (!this.client) await this.connect();
     
-    const value = await this.client!.get(key);
+    const client = this.client;
+    if (!client) return null;
+
+    const value = await client.get(key);
     if (!value) return null;
 
     try {
@@ -60,26 +63,33 @@ class RedisCache {
     }
   }
 
-  public async set(key: string, value: any, ttl?: number): Promise<void> {
+  public async set(key: string, value: unknown, ttl?: number): Promise<void> {
     if (!this.client) await this.connect();
 
     const stringValue = typeof value === 'string' ? value : JSON.stringify(value);
     
+    const client = this.client;
+    if (!client) return;
+
     if (ttl) {
-      await this.client!.setEx(key, ttl, stringValue);
+      await client.setEx(key, ttl, stringValue);
     } else {
-      await this.client!.set(key, stringValue);
+      await client.set(key, stringValue);
     }
   }
 
   public async del(key: string): Promise<void> {
     if (!this.client) await this.connect();
-    await this.client!.del(key);
+    const client = this.client;
+    if (!client) return;
+    await client.del(key);
   }
 
   public async flush(): Promise<void> {
     if (!this.client) await this.connect();
-    await this.client!.flushAll();
+    const client = this.client;
+    if (!client) return;
+    await client.flushAll();
   }
 }
 
