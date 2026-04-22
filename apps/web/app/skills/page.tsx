@@ -6,6 +6,7 @@ import SkillCard from '@/components/ui/SkillCard';
 import AdvancedFilterPanel from '@/components/ui/AdvancedFilterPanel';
 import Pagination from '@/components/ui/Pagination';
 import SearchHistory from '@/components/ui/SearchHistory';
+import GlobalSearchLoadingIndicator from '@/components/ui/GlobalSearchLoadingIndicator';
 
 // Define types
 interface SkillWithRelations {
@@ -52,7 +53,8 @@ interface SearchParams {
   dateTo?: string;
   sortBy?: string;
   page?: string;
-  semantic?: string; // 新增：是否启用语义搜索
+  semantic?: string; // 是否启用语义搜索
+  global?: string; // 是否启用全局搜索
 }
 
 export default async function PublicSkillsPage({
@@ -76,12 +78,39 @@ export default async function PublicSkillsPage({
   const limit = 20;
   const skip = (page - 1) * limit;
   const useSemanticSearch = searchParams.semantic === 'true'; // 检查是否启用语义搜索
+  const useGlobalSearch = searchParams.global === 'true'; // 检查是否启用全局搜索
 
-  // 根据是否启用语义搜索，使用不同的搜索方法
+  // 根据搜索模式，使用不同的搜索方法
   let skills: SkillWithRelations[] = [];
   let total = 0;
+  let globalResults: SkillWithRelations[] = [];
+  let searchMode: 'local' | 'mixed' = 'local';
 
-  if (useSemanticSearch && query) {
+  if (useGlobalSearch && query) {
+    // 使用全局搜索API（本地+全网）
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/search/global?q=${encodeURIComponent(query)}`,
+        { cache: 'no-store' }
+      );
+      
+      if (response.ok) {
+        const data = await response.json();
+        skills = data.local.skills || [];
+        total = data.local.total || 0;
+        globalResults = data.global.skills || [];
+        searchMode = data.mode;
+      } else {
+        console.error('Global search failed:', await response.text());
+        // 回退到传统搜索
+        await useTraditionalSearch();
+      }
+    } catch (error) {
+      console.error('Failed to perform global search, falling back to traditional search:', error);
+      // 回退到传统搜索
+      await useTraditionalSearch();
+    }
+  } else if (useSemanticSearch && query) {
     // 使用语义搜索
     try {
       const response = await fetch(
@@ -101,7 +130,7 @@ export default async function PublicSkillsPage({
     } catch (error) {
       console.error('Failed to perform semantic search, falling back to traditional search:', error);
       // 回退到传统搜索逻辑（下面的代码）
-      useSemanticSearchFallback();
+      await useTraditionalSearch();
     }
   } else {
     // 使用传统搜索
@@ -222,11 +251,6 @@ export default async function PublicSkillsPage({
         },
       },
     }) as SkillWithRelations[];
-  }
-
-  // 语义搜索回退函数
-  async function useSemanticSearchFallback() {
-    await useTraditionalSearch();
   }
 
   // Get dynamic categories from database
@@ -417,6 +441,13 @@ export default async function PublicSkillsPage({
 
           {/* 主内容区 */}
           <main className="flex-1">
+            {/* 全局搜索加载指示器 */}
+            <GlobalSearchLoadingIndicator
+              isGlobalSearch={useGlobalSearch && !!query}
+              hasLocalResults={skills.length > 0}
+              hasGlobalResults={globalResults.length > 0}
+            />
+
             {/* 结果统计 */}
             <div className="mb-8 flex items-center justify-between">
               <div>
@@ -438,7 +469,7 @@ export default async function PublicSkillsPage({
             </div>
 
             {/* Skills 网格 */}
-            {skills.length === 0 ? (
+            {skills.length === 0 && globalResults.length === 0 ? (
               <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50">
                 <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
                   <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -458,24 +489,90 @@ export default async function PublicSkillsPage({
                 </Link>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {skills.map((skill: SkillWithRelations) => (
-                  <SkillCard
-                    key={skill.id}
-                    name={skill.name}
-                    slug={skill.slug}
-                    description={skill.description}
-                    subcategory={skill.subcategory}
-                    tags={skill.tags}
-                    qualityScore={skill.confidence}
-                    starCount={skill.starCount}
-                    downloadCount={skill.downloadCount}
-                    source={skill.source}
-                    author={skill.author}
-                    namespace={skill.namespace}
-                  />
-                ))}
-              </div>
+              <>
+                {/* 本地搜索结果 */}
+                {skills.length > 0 && (
+                  <section className="mb-12">
+                    {searchMode === 'mixed' && (
+                      <h2 className="text-xl font-bold mb-4 text-gray-900">
+                        本站结果 ({skills.length})
+                      </h2>
+                    )}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {skills.map((skill: SkillWithRelations) => (
+                        <SkillCard
+                          key={skill.id}
+                          name={skill.name}
+                          slug={skill.slug}
+                          description={skill.description}
+                          subcategory={skill.subcategory}
+                          tags={skill.tags}
+                          qualityScore={skill.confidence}
+                          starCount={skill.starCount}
+                          downloadCount={skill.downloadCount}
+                          source={skill.source}
+                          author={skill.author}
+                          namespace={skill.namespace}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* 全网搜索结果 */}
+                {searchMode === 'mixed' && globalResults.length > 0 && (
+                  <section className="mt-12">
+                    <div className="flex items-center gap-2 mb-4">
+                      <h2 className="text-xl font-bold text-gray-900">
+                        全网搜索结果 ({globalResults.length})
+                      </h2>
+                      <span className="px-2 py-1 text-xs bg-blue-100 text-blue-700 rounded-full">
+                        实时爬取
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {globalResults.map((skill: SkillWithRelations) => (
+                        <SkillCard
+                          key={skill.id}
+                          name={skill.name}
+                          slug={skill.slug}
+                          description={skill.description}
+                          subcategory={skill.subcategory}
+                          tags={skill.tags}
+                          qualityScore={skill.confidence}
+                          starCount={skill.starCount}
+                          downloadCount={skill.downloadCount}
+                          source={skill.source}
+                          author={skill.author}
+                          namespace={skill.namespace}
+                        />
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* 只有本地结果时显示原有网格 */}
+                {searchMode === 'local' && skills.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {skills.map((skill: SkillWithRelations) => (
+                      <SkillCard
+                        key={skill.id}
+                        name={skill.name}
+                        slug={skill.slug}
+                        description={skill.description}
+                        subcategory={skill.subcategory}
+                        tags={skill.tags}
+                        qualityScore={skill.confidence}
+                        starCount={skill.starCount}
+                        downloadCount={skill.downloadCount}
+                        source={skill.source}
+                        author={skill.author}
+                        namespace={skill.namespace}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
 
             {/* 分页 - Using new Pagination component */}

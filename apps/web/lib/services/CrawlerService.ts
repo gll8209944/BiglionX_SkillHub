@@ -258,6 +258,7 @@ export class CrawlerService {
    * 搜索并爬取匹配的仓库
    * @param query 搜索查询
    * @param filters 过滤条件
+   * @param timeout 超时时间（毫秒），默认15秒
    * @returns 爬取结果
    */
   async searchAndCrawl(
@@ -267,10 +268,41 @@ export class CrawlerService {
       minStars?: number;
       updatedAfter?: string;
       limit?: number;
-    } = {}
+    } = {},
+    timeout = 15000 // 15秒超时
   ): Promise<{ discovered: number; crawled: number; failed: number }> {
     console.log(`🔍 Searching for repositories: "${query}"`);
 
+    // 添加超时保护
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      setTimeout(() => reject(new Error('Crawl timeout')), timeout);
+    });
+
+    try {
+      const result = await Promise.race([
+        this._doSearchAndCrawl(query, filters),
+        timeoutPromise,
+      ]);
+      return result;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('Search and crawl failed or timed out:', errorMessage);
+      return { discovered: 0, crawled: 0, failed: 0 };
+    }
+  }
+
+  /**
+   * 实际执行搜索和爬取的内部方法
+   */
+  private async _doSearchAndCrawl(
+    query: string,
+    filters: {
+      language?: string;
+      minStars?: number;
+      updatedAfter?: string;
+      limit?: number;
+    } = {}
+  ): Promise<{ discovered: number; crawled: number; failed: number }> {
     // 搜索仓库
     const repos = await this.adapter.searchRepositories(query, {
       language: filters.language,

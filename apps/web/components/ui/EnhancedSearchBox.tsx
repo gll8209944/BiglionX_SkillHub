@@ -103,12 +103,8 @@ export default function EnhancedSearchBox({
         window.__searchHistoryAPI.addToHistory(query.trim());
       }
       
-      // 根据是否启用语义搜索，跳转到不同的URL
-      if (useSemanticSearch) {
-        router.push(`/skills?q=${encodeURIComponent(query.trim())}&semantic=true`);
-      } else {
-        router.push(`/skills?q=${encodeURIComponent(query.trim())}`);
-      }
+      // 跳转到全局搜索页面（支持混合模式）
+      router.push(`/skills?q=${encodeURIComponent(query.trim())}&global=true`);
       setShowSuggestions(false);
     }
   };
@@ -121,12 +117,8 @@ export default function EnhancedSearchBox({
       window.__searchHistoryAPI.addToHistory(suggestionText);
     }
     
-    // 根据是否启用语义搜索，跳转到不同的URL
-    if (useSemanticSearch) {
-      router.push(`/skills?q=${encodeURIComponent(suggestionText)}&semantic=true`);
-    } else {
-      router.push(`/skills?q=${encodeURIComponent(suggestionText)}`);
-    }
+    // 跳转到全局搜索页面（支持混合模式）
+    router.push(`/skills?q=${encodeURIComponent(suggestionText)}&global=true`);
     setShowSuggestions(false);
   };
 
