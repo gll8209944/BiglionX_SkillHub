@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export default function CreateBountyPage() {
   const router = useRouter();
-  const { status } = useSession();
+  const sessionData = useSession();
+  const status = sessionData?.status;
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -23,6 +24,18 @@ export default function CreateBountyPage() {
     currency: 'CNY',
     deadline: '',
   });
+
+  // 如果未登录或加载中，显示加载状态
+  if (!status || status === 'loading') {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+          <p className="mt-4 text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   // 如果未登录，重定向到登录页
   if (status === 'unauthenticated') {

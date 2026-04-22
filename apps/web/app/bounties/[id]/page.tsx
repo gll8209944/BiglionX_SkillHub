@@ -55,7 +55,8 @@ interface Bounty {
 
 export default function BountyDetailPage() {
   const params = useParams();
-  const { data: session } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
   const [bounty, setBounty] = useState<Bounty | null>(null);
   const [loading, setLoading] = useState(true);
   const [showApplyModal, setShowApplyModal] = useState(false);

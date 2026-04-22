@@ -37,7 +37,8 @@ interface Bounty {
 }
 
 export default function BountiesPage() {
-  const { data: session } = useSession();
+  const sessionData = useSession();
+  const session = sessionData?.data;
   const [bounties, setBounties] = useState<Bounty[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
