@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 
+export const dynamic = 'force-dynamic';
+
 interface BountyRequirements {
   category?: string;
   subcategory?: string;
