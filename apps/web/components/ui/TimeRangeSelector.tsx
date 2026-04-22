@@ -4,6 +4,7 @@ import React from 'react';
 
 export type TimeRange = 'today' | 'week' | 'month' | 'year' | 'all';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 interface TimeRangeSelectorProps {
   value: TimeRange;
   onChange: (range: TimeRange) => void;
