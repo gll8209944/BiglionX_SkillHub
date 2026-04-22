@@ -23,7 +23,6 @@ if (isVercel) {
   console.log('🔧 Using Upstash Redis for Vercel');
   
   try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Redis } = require('@upstash/redis');
     
     const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
@@ -98,7 +97,6 @@ if (isVercel) {
   // 本地环境：使用传统 Redis
   console.log('🔧 Using local Redis');
   
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { createClient } = require('redis');
   const client = createClient({
     url: process.env.REDIS_URL || 'redis://localhost:6379',
