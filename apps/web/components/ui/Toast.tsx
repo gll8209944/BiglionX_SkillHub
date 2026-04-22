@@ -101,3 +101,6 @@ export default function Toast({
     </div>
   );
 }
+
+// Re-export useToast from ToastContainer for convenience
+export { useToast } from './ToastContainer';

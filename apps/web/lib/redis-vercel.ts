@@ -26,10 +26,26 @@ if (isVercel) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { Redis } = require('@upstash/redis');
     
+    const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    
+    if (!upstashUrl || !upstashToken) {
+      console.warn('⚠️ Upstash Redis environment variables not set, using memory cache only');
+      throw new Error('UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not configured');
+    }
+    
+    // 验证 URL 格式
+    if (!upstashUrl.startsWith('http://') && !upstashUrl.startsWith('https://')) {
+      console.warn('⚠️ Invalid Upstash Redis URL format, using memory cache only');
+      throw new Error('Invalid protocol in UPSTASH_REDIS_REST_URL');
+    }
+    
     const upstashRedis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL || '',
-      token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+      url: upstashUrl,
+      token: upstashToken,
     });
+    
+    console.log('✅ Upstash Redis initialized successfully');
     
     // 包装方法以兼容现有代码
     redisCache = {
@@ -56,9 +72,27 @@ if (isVercel) {
       },
     };
   } catch (error) {
-    console.error('❌ Failed to initialize Upstash Redis:', error);
-    console.warn('⚠️ 请安装 @upstash/redis: npm install @upstash/redis');
-    throw error;
+    console.error('❌ Failed to initialize Upstash Redis:', error instanceof Error ? error.message : 'Unknown error');
+    console.warn('⚠️ Falling back to no-op cache (memory cache only)');
+    
+    // 提供降级方案：无操作缓存
+    redisCache = {
+      async get() {
+        return null;
+      },
+      async set() {
+        // No-op
+      },
+      async del() {
+        // No-op
+      },
+      async connect() {
+        console.log('⚠️ Using no-op cache (Redis not available)');
+      },
+      async disconnect() {
+        // No-op
+      },
+    };
   }
 } else {
   // 本地环境：使用传统 Redis
