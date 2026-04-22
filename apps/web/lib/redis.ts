@@ -4,6 +4,7 @@
 const isVercel = process.env.VERCEL === '1';
 
 // 在 Vercel 环境中使用 Upstash Redis
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let upstashRedis: any = null;
 if (isVercel && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
   try {
