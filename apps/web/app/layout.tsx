@@ -33,8 +33,11 @@ export const metadata: Metadata = {
   title: 'Skill Hub - AI Agent Skills Registry',
   description: 'Enterprise-grade, open-source AI agent skill registry',
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: [
+      { url: '/favicon.ico', type: 'image/x-icon' },
+      { url: '/icon.png', type: 'image/png' },
+    ],
+    apple: '/apple-touch-icon.png',
   },
 };
 
