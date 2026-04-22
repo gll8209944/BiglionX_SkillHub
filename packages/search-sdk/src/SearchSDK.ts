@@ -11,6 +11,9 @@ import {
   ErrorResponse,
 } from './types';
 
+// 查询参数类型
+type QueryParams = Record<string, string | number | boolean | string[] | object | undefined>;
+
 /**
  * SkillHub搜索引擎SDK
  * 
@@ -82,7 +85,7 @@ export class SearchSDK {
    */
   async search(options: SearchOptions): Promise<SearchResponse> {
     try {
-      const params: Record<string, any> = {};
+      const params: QueryParams = {};
       
       if (options.query) params.q = options.query;
       if (options.category) params.category = options.category;
@@ -127,7 +130,7 @@ export class SearchSDK {
     options: SemanticSearchOptions
   ): Promise<SemanticSearchResult[]> {
     try {
-      const params: Record<string, any> = {
+      const params: QueryParams = {
         query: options.query,
       };
 
@@ -174,7 +177,7 @@ export class SearchSDK {
     options: AdvancedSearchOptions
   ): Promise<SearchResponse> {
     try {
-      const body: Record<string, any> = {};
+      const body: QueryParams = {};
 
       if (options.query) body.query = options.query;
       if (options.categories) body.categories = options.categories;
@@ -277,7 +280,7 @@ export class SearchSDK {
     options: RelatedSkillsOptions = {}
   ): Promise<SemanticSearchResult[]> {
     try {
-      const params: Record<string, any> = {};
+      const params: QueryParams = {};
       
       if (options.limit !== undefined) params.limit = options.limit;
       if (options.minSimilarity !== undefined) {
