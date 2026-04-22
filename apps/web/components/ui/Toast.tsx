@@ -5,7 +5,7 @@ import { CheckCircle, XCircle, AlertCircle, Info, X } from 'lucide-react';
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/* eslint-disable no-unused-vars */
 interface ToastProps {
   id: string;
   message: string;
@@ -13,6 +13,7 @@ interface ToastProps {
   duration?: number;
   onClose: (id: string) => void;
 }
+/* eslint-enable no-unused-vars */
 
 const icons = {
   success: CheckCircle,

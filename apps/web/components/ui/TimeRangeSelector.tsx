@@ -4,11 +4,12 @@ import React from 'react';
 
 export type TimeRange = 'today' | 'week' | 'month' | 'year' | 'all';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+/* eslint-disable no-unused-vars */
 interface TimeRangeSelectorProps {
   value: TimeRange;
   onChange: (range: TimeRange) => void;
 }
+/* eslint-enable no-unused-vars */
 
 const timeRanges: { value: TimeRange; label: string }[] = [
   { value: 'today', label: '今日' },
