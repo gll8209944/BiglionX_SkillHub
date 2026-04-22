@@ -1,6 +1,13 @@
 import { createClient } from 'redis';
 import NodeCache from 'node-cache';
 
+// Upstash Redis 类型定义（延迟加载）
+type UpstashRedisClient = {
+  get: (key: string) => Promise<string | null>;
+  set: (key: string, value: string, options?: { ex?: number }) => Promise<void>;
+  del: (key: string) => Promise<void>;
+};
+
 /**
  * Embeddings缓存服务
  * 
@@ -12,6 +19,7 @@ import NodeCache from 'node-cache';
 export class EmbeddingCacheService {
   private memoryCache: NodeCache;
   private redisClient: ReturnType<typeof createClient> | null = null;
+  private upstashClient: UpstashRedisClient | null = null;
   private redisEnabled = false;
   
   // 缓存键前缀
@@ -44,36 +52,101 @@ export class EmbeddingCacheService {
     try {
       // 在 Vercel 环境中使用 Upstash Redis
       const isVercel = process.env.VERCEL === '1';
-      let redisUrl: string;
       
-      if (isVercel && process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+      if (isVercel) {
         // 使用 Upstash Redis (HTTP API)
+        const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+        const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+        
+        if (!upstashUrl || !upstashToken) {
+          console.warn('⚠️ Upstash Redis 环境变量未配置，将仅使用内存缓存');
+          this.redisEnabled = false;
+          return;
+        }
+        
+        // 验证 URL 格式
+        if (!upstashUrl.startsWith('http://') && !upstashUrl.startsWith('https://')) {
+          console.warn('⚠️ Upstash Redis URL 格式无效，将仅使用内存缓存');
+          this.redisEnabled = false;
+          return;
+        }
+        
         console.log('🔧 Using Upstash Redis for Vercel');
-        // 对于 Upstash，我们需要使用特殊的 URL 格式
-        redisUrl = `${process.env.UPSTASH_REDIS_REST_URL}?token=${process.env.UPSTASH_REDIS_REST_TOKEN}`;
+        
+        // 动态导入 @upstash/redis
+        const { Redis } = require('@upstash/redis');
+        this.upstashClient = new Redis({
+          url: upstashUrl,
+          token: upstashToken,
+        });
+        
+        this.redisEnabled = true;
+        console.log('✅ Upstash Redis 初始化成功');
       } else {
         // 本地开发使用传统 Redis
-        redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+        const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
+        
+        this.redisClient = createClient({
+          url: redisUrl,
+        });
+        
+        this.redisClient.on('error', (err) => {
+          console.error('❌ Redis连接错误:', err.message);
+          this.redisEnabled = false;
+        });
+        
+        this.redisClient.on('connect', () => {
+          console.log('✅ Redis连接成功');
+          this.redisEnabled = true;
+        });
+        
+        await this.redisClient.connect();
       }
-      
-      this.redisClient = createClient({
-        url: redisUrl,
-      });
-      
-      this.redisClient.on('error', (err) => {
-        console.error('❌ Redis连接错误:', err.message);
-        this.redisEnabled = false;
-      });
-      
-      this.redisClient.on('connect', () => {
-        console.log('✅ Redis连接成功');
-        this.redisEnabled = true;
-      });
-      
-      await this.redisClient.connect();
     } catch (error) {
-      console.warn('⚠️ Redis连接失败，将仅使用内存缓存:', error);
+      console.warn('⚠️ Redis连接失败，将仅使用内存缓存:', error instanceof Error ? error.message : 'Unknown error');
       this.redisEnabled = false;
+    }
+  }
+  
+  /**
+   * 统一的 Redis GET 方法（支持传统 Redis 和 Upstash）
+   */
+  private async redisGet(key: string): Promise<string | null> {
+    if (this.upstashClient) {
+      return await this.upstashClient.get(key);
+    } else if (this.redisClient) {
+      return await this.redisClient.get(key);
+    }
+    return null;
+  }
+  
+  /**
+   * 统一的 Redis SET 方法（支持传统 Redis 和 Upstash）
+   */
+  private async redisSet(key: string, value: string, ttl?: number): Promise<void> {
+    if (this.upstashClient) {
+      if (ttl) {
+        await this.upstashClient.set(key, value, { ex: ttl });
+      } else {
+        await this.upstashClient.set(key, value);
+      }
+    } else if (this.redisClient) {
+      if (ttl) {
+        await this.redisClient.setEx(key, ttl, value);
+      } else {
+        await this.redisClient.set(key, value);
+      }
+    }
+  }
+  
+  /**
+   * 统一的 Redis DEL 方法（支持传统 Redis 和 Upstash）
+   */
+  private async redisDel(key: string): Promise<void> {
+    if (this.upstashClient) {
+      await this.upstashClient.del(key);
+    } else if (this.redisClient) {
+      await this.redisClient.del(key);
     }
   }
   
@@ -119,21 +192,21 @@ export class EmbeddingCacheService {
       return memoryResult;
     }
     
-    // 2. 尝试从Redis获取
-    if (this.redisEnabled && this.redisClient) {
+    // 2. 尝试从 Redis 获取
+    if (this.redisEnabled) {
       try {
-        const redisResult = await this.redisClient.get(cacheKey);
+        const redisResult = await this.redisGet(cacheKey);
         if (redisResult) {
           const embedding = JSON.parse(redisResult);
           console.log('💾 [L2] Redis缓存命中');
-          
+              
           // 回填到内存缓存
           this.memoryCache.set(cacheKey, embedding);
-          
+              
           return embedding;
         }
       } catch (error) {
-        console.error('❌ Redis读取失败:', error);
+        console.error('❌ Redis读取失败:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
     
@@ -152,16 +225,16 @@ export class EmbeddingCacheService {
     // 1. 设置内存缓存
     this.memoryCache.set(cacheKey, embedding);
     
-    // 2. 设置Redis缓存
-    if (this.redisEnabled && this.redisClient) {
+    // 2. 设置 Redis 缓存
+    if (this.redisEnabled) {
       try {
-        await this.redisClient.setEx(
+        await this.redisSet(
           cacheKey,
-          this.REDIS_CACHE_TTL,
-          JSON.stringify(embedding)
+          JSON.stringify(embedding),
+          this.REDIS_CACHE_TTL
         );
       } catch (error) {
-        console.error('❌ Redis写入失败:', error);
+        console.error('❌ Redis写入失败:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -182,21 +255,21 @@ export class EmbeddingCacheService {
       return memoryResult;
     }
     
-    // 2. 尝试从Redis获取
-    if (this.redisEnabled && this.redisClient) {
+    // 2. 尝试从 Redis 获取
+    if (this.redisEnabled) {
       try {
-        const redisResult = await this.redisClient.get(cacheKey);
+        const redisResult = await this.redisGet(cacheKey);
         if (redisResult) {
           const result = JSON.parse(redisResult);
-          console.log('💾 [L2] 搜索结果Redis缓存命中');
-          
+          console.log('💾 [L2] 搜索结果 Redis 缓存命中');
+              
           // 回填到内存缓存
           this.memoryCache.set(cacheKey, result);
-          
+              
           return result;
         }
       } catch (error) {
-        console.error('❌ Redis读取失败:', error);
+        console.error('❌ Redis读取失败:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
     
@@ -215,16 +288,16 @@ export class EmbeddingCacheService {
     // 1. 设置内存缓存
     this.memoryCache.set(cacheKey, result);
     
-    // 2. 设置Redis缓存
-    if (this.redisEnabled && this.redisClient) {
+    // 2. 设置 Redis 缓存
+    if (this.redisEnabled) {
       try {
-        await this.redisClient.setEx(
+        await this.redisSet(
           cacheKey,
-          this.SEARCH_RESULT_TTL,
-          JSON.stringify(result)
+          JSON.stringify(result),
+          this.SEARCH_RESULT_TTL
         );
       } catch (error) {
-        console.error('❌ Redis写入失败:', error);
+        console.error('❌ Redis写入失败:', error instanceof Error ? error.message : 'Unknown error');
       }
     }
   }
@@ -273,13 +346,14 @@ export class EmbeddingCacheService {
       const cacheKey = this.getEmbeddingCacheKey(text);
       this.memoryCache.del(cacheKey);
       
-      if (this.redisEnabled && this.redisClient) {
-        await this.redisClient.del(cacheKey);
+      if (this.redisEnabled) {
+        await this.redisDel(cacheKey);
       }
     } else {
-      // 清除所有embedding缓存
+      // 清除所有 embedding 缓存
       this.memoryCache.flushAll();
       
+      // 注意：Upstash 不支持 keys 命令，这里只清除内存缓存
       if (this.redisEnabled && this.redisClient) {
         const keys = await this.redisClient.keys(`${this.CACHE_KEY_PREFIX}*`);
         if (keys.length > 0) {
@@ -295,6 +369,7 @@ export class EmbeddingCacheService {
   async invalidateSearchCache(): Promise<void> {
     this.memoryCache.flushAll();
     
+    // 注意：Upstash 不支持 keys 命令，这里只清除内存缓存
     if (this.redisEnabled && this.redisClient) {
       const keys = await this.redisClient.keys(`${this.SEARCH_RESULT_PREFIX}*`);
       if (keys.length > 0) {
@@ -325,9 +400,10 @@ export class EmbeddingCacheService {
   async shutdown() {
     this.memoryCache.flushAll();
     
-    if (this.redisEnabled && this.redisClient) {
+    if (this.redisClient) {
       await this.redisClient.quit();
     }
+    // Upstash 不需要显式关闭
   }
 }
 
