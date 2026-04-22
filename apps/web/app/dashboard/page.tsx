@@ -64,7 +64,7 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* 页面标题和操作 */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">欢迎回来! 👋</h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -81,6 +81,46 @@ export default function DashboardPage() {
           >
             <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
           </button>
+        </div>
+      </div>
+
+      {/* 快捷操作 - 移到标题栏下方 */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/skills/new"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <Package className="w-4 h-4 mr-2" />
+            发布新 Skill
+          </Link>
+          <Link
+            href="/dashboard/skills"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            管理 Skills
+          </Link>
+          <Link
+            href="/dashboard/namespaces"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            管理命名空间
+          </Link>
+          <Link
+            href="/dashboard/analytics"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            查看详细分析
+          </Link>
+          <Link
+            href="/dashboard/integration"
+            className="inline-flex items-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-lg text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+            </svg>
+            SDK 集成指南
+          </Link>
         </div>
       </div>
 
@@ -159,38 +199,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-
-      {/* 快捷操作 */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">快捷操作</h2>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/dashboard/skills/new"
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <Package className="w-4 h-4 mr-2" />
-            发布新 Skill
-          </Link>
-          <Link
-            href="/dashboard/skills"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            管理 Skills
-          </Link>
-          <Link
-            href="/dashboard/namespaces"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            管理命名空间
-          </Link>
-          <Link
-            href="/dashboard/analytics"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            查看详细分析
-          </Link>
-        </div>
-      </div>
 
       {/* 最近的 Skills */}
       {stats.recentSkills.length > 0 && (

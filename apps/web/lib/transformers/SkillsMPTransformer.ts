@@ -197,8 +197,10 @@ export class SkillsMPTransformer {
       errors.push('Source ID is required');
     }
     
+    // 如果描述过长，自动截断而不是报错
     if (skillData.description && skillData.description.length > 5000) {
-      errors.push('Description too long (max 5000 characters)');
+      console.warn(`⚠️  Description too long for ${skillData.name}, truncating from ${skillData.description.length} to 5000 characters`);
+      skillData.description = skillData.description.substring(0, 4997) + '...';
     }
     
     return {

@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
-  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
   previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -10,32 +10,36 @@ datasource db {
 }
 
 model User {
-  id                 String            @id @default(uuid())
-  email              String            @unique
+  id                 String              @id @default(uuid())
+  email              String              @unique
   name               String?
   image              String?
   emailVerified      DateTime?
-  role               UserRole          @default(USER)
-  isDisabled         Boolean           @default(false)
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  isDisabled         Boolean             @default(false)
   password           String?
   resetToken         String?
   resetTokenExpiry   DateTime?
+  role               UserRole            @default(USER)
   accounts           Account[]
   apiKeys            ApiKey[]
   auditLogs          AuditLog[]
+  bountyApplications BountyApplication[]
+  bountySubmissions  BountySubmission[]
   namespaces         NamespaceMember[]
-  ownedNamespaces    Namespace[]       @relation("NamespaceOwner")
+  ownedNamespaces    Namespace[]         @relation("NamespaceOwner")
+  notifications      Notification[]
   reviews            Review[]
   sessions           Session[]
+  assignedBounties   SkillBounty[]       @relation("BountyAssignee")
+  createdBounties    SkillBounty[]       @relation("BountyCreator")
+  collections        SkillCollection[]
+  comments           SkillComment[]
   feedbacks          SkillFeedback[]
   skills             Skill[]
-  comments           SkillComment[]    // 用户发表的评论
-  followers          UserFollow[]      @relation("Following")  // 关注我的人
-  following          UserFollow[]      @relation("Followers")  // 我关注的人
-  collections        SkillCollection[] // 创建的合集
-  notifications      Notification[]    // 收到的通知
+  following          UserFollow[]        @relation("Followers")
+  followers          UserFollow[]        @relation("Following")
 
   @@map("users")
 }
@@ -80,11 +84,12 @@ model Skill {
   starCount        Int             @default(0)
   subcategory      String?
   syncStatus       String?
-  embedding        Json?           // OpenAI embeddings (存储为JSON数组，向后兼容)
-  embeddingVector  Float[]         // pgvector格式 (维度1536，用于高性能向量搜索)
+  embedding        Json?
+  embeddingVector  Float[]
   reviews          Review[]
+  bounties         SkillBounty[]
+  comments         SkillComment[]
   feedbacks        SkillFeedback[]
-  comments         SkillComment[]  // 社区评论
   versions         SkillVersion[]
   author           User            @relation(fields: [authorId], references: [id])
   namespace        Namespace?      @relation(fields: [namespaceId], references: [id])
@@ -96,10 +101,9 @@ model Skill {
   @@index([sourceId])
   @@index([qualityScore(sort: Desc)])
   @@index([updatedAt(sort: Desc)])
-  // 个人统计优化索引
-  @@index([authorId, createdAt])  // 用于按作者和时间范围查询
-  @@index([authorId, status])     // 用于按作者和状态分组
-  @@index([authorId, downloadCount])  // 用于下载量统计
+  @@index([authorId, createdAt])
+  @@index([authorId, status])
+  @@index([authorId, downloadCount])
   @@map("skills")
 }
 
@@ -328,24 +332,22 @@ model SkillFeedback {
   @@map("skill_feedbacks")
 }
 
-// 社区评论系统
 model SkillComment {
-  id          String         @id @default(uuid())
-  skillId     String
-  userId      String
-  parentId    String?        // 支持回复评论
-  content     String         // Markdown 格式评论内容
-  rating      Int?           // 可选评分 (1-5)
-  upvotes     Int            @default(0)
-  isEdited    Boolean        @default(false)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  
-  skill       Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
-  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  parent      SkillComment?  @relation("CommentReplies", fields: [parentId], references: [id])
-  replies     SkillComment[] @relation("CommentReplies")
-  
+  id        String         @id @default(uuid())
+  skillId   String
+  userId    String
+  parentId  String?
+  content   String
+  rating    Int?
+  upvotes   Int            @default(0)
+  isEdited  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  parent    SkillComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   SkillComment[] @relation("CommentReplies")
+  skill     Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([skillId])
   @@index([userId])
   @@index([parentId])
@@ -353,53 +355,47 @@ model SkillComment {
   @@map("skill_comments")
 }
 
-// 用户关注系统
 model UserFollow {
   followerId  String
   followingId String
   createdAt   DateTime @default(now())
-  
-  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
-  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
-  
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
   @@id([followerId, followingId])
   @@index([followerId])
   @@index([followingId])
   @@map("user_follows")
 }
 
-// 技能收藏/合集
 model SkillCollection {
   id          String   @id @default(uuid())
   name        String
   description String?
   userId      String
   isPublic    Boolean  @default(true)
-  skills      Json     // 技能 ID 列表 [{"skillId": "...", "addedAt": "..."}]
+  skills      Json
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([isPublic])
   @@map("skill_collections")
 }
 
-// 通知系统
 model Notification {
   id        String           @id @default(uuid())
   userId    String
-  type      NotificationType
   title     String
   message   String
   link      String?
   isRead    Boolean          @default(false)
   metadata  Json?
   createdAt DateTime         @default(now())
-  
+  type      NotificationType
   user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   @@index([userId])
   @@index([isRead])
   @@index([createdAt(sort: Desc)])
@@ -417,6 +413,79 @@ model CrawlerConfig {
 
   @@index([configKey])
   @@map("crawler_configs")
+}
+
+model SkillBounty {
+  id           String              @id @default(uuid())
+  title        String
+  description  String
+  requirements String
+  reward       Decimal             @db.Decimal(10, 2)
+  currency     String              @default("CNY")
+  status       BountyStatus        @default(OPEN)
+  creatorId    String
+  assigneeId   String?
+  skillId      String?
+  deadline     DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  applications BountyApplication[]
+  submissions  BountySubmission[]
+  assignee     User?               @relation("BountyAssignee", fields: [assigneeId], references: [id])
+  creator      User                @relation("BountyCreator", fields: [creatorId], references: [id])
+  skill        Skill?              @relation(fields: [skillId], references: [id])
+
+  @@index([creatorId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_bounties")
+}
+
+model BountyApplication {
+  id            String            @id @default(uuid())
+  bountyId      String
+  userId        String
+  proposal      String
+  estimatedTime String?
+  portfolio     String?
+  status        ApplicationStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  reviewedAt    DateTime?
+  reviewNote    String?
+  bounty        SkillBounty       @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, userId])
+  @@index([bountyId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("bounty_applications")
+}
+
+model BountySubmission {
+  id          String           @id @default(uuid())
+  bountyId    String
+  userId      String
+  content     String
+  description String
+  attachments Json?
+  status      SubmissionStatus @default(SUBMITTED)
+  feedback    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  reviewedAt  DateTime?
+  bounty      SkillBounty      @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bountyId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("bounty_submissions")
 }
 
 model playing_with_neon {
@@ -465,10 +534,35 @@ enum UserRole {
 }
 
 enum NotificationType {
-  COMMENT_REPLY        // 评论回复
-  SKILL_RATED          // 技能被评分
-  FOLLOW               // 被关注
-  SKILL_UPDATED        // 关注的技能更新
-  MENTION              // 被提及
-  SYSTEM               // 系统通知
+  COMMENT_REPLY
+  SKILL_RATED
+  FOLLOW
+  SKILL_UPDATED
+  MENTION
+  SYSTEM
+}
+
+enum BountyStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
 }
