@@ -96,6 +96,10 @@ model Skill {
   @@index([sourceId])
   @@index([qualityScore(sort: Desc)])
   @@index([updatedAt(sort: Desc)])
+  // 个人统计优化索引
+  @@index([authorId, createdAt])  // 用于按作者和时间范围查询
+  @@index([authorId, status])     // 用于按作者和状态分组
+  @@index([authorId, downloadCount])  // 用于下载量统计
   @@map("skills")
 }
 

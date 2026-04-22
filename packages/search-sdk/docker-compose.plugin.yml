@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # SkillHub搜索引擎插件
+  skillhub-search-plugin:
+    build:
+      context: .
+      dockerfile: Dockerfile.plugin
+    container_name: skillhub-search-plugin
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - SKILLHUB_API_URL=http://skillhub-backend:3000/api
+    depends_on:
+      - skillhub-backend
+    networks:
+      - skillhub-network
+    volumes:
+      - plugin-data:/plugin/data
+
+  # SkillHub后端（可选 - 如果您需要完整的SkillHub实例）
+  skillhub-backend:
+    image: skillhub/backend:latest
+    container_name: skillhub-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - DATABASE_URL=postgresql://user:password@postgres:5432/skillhub
+      - REDIS_URL=redis://redis:6379
+      - NEXTAUTH_SECRET=your-secret-key
+      - OPENAI_API_KEY=your-openai-key
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - skillhub-network
+
+  # PostgreSQL数据库
+  postgres:
+    image: postgres:15-alpine
+    container_name: skillhub-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=skillhub
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - skillhub-network
+
+  # Redis缓存
+  redis:
+    image: redis:7-alpine
+    container_name: skillhub-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - skillhub-network
+
+networks:
+  skillhub-network:
+    driver: bridge
+
+volumes:
+  plugin-data:
+  postgres-data:
+  redis-data:

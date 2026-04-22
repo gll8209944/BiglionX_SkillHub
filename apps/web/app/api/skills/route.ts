@@ -6,6 +6,16 @@ import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse 
 /**
  * GET /api/skills
  * 获取技能列表（支持分页、搜索、过滤）
+ * Query params:
+ * - page: 页码 (default: 1)
+ * - limit: 每页数量 (default: 20)
+ * - search: 搜索关键词
+ * - status: 状态过滤 (APPROVED/DRAFT/PENDING_REVIEW等，支持多个，用逗号分隔)
+ * - namespaceId: 命名空间ID
+ * - authorId: 作者ID（用于获取用户的Skills）
+ * - sortBy: 排序字段 (default: createdAt)
+ * - sortOrder: 排序方向 (asc/desc, default: desc)
+ * - draft: 是否为草稿箱模式 (true/false)
  */
 export async function GET(request: NextRequest) {
   try {
@@ -15,10 +25,12 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const search = searchParams.get('search') || '';
-    const status = searchParams.get('status');
+    const statusParam = searchParams.get('status');
     const namespaceId = searchParams.get('namespaceId');
-    const sortBy = searchParams.get('sortBy') || 'createdAt';
+    const authorId = searchParams.get('authorId');
+    const sortBy = searchParams.get('sortBy') || 'updatedAt';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const isDraft = searchParams.get('draft') === 'true';
 
     // 计算偏移量
     const skip = (page - 1) * limit;
@@ -35,9 +47,19 @@ export async function GET(request: NextRequest) {
       ];
     }
 
-    // 状态过滤
-    if (status) {
-      where.status = status;
+    // 状态过滤（支持多个状态，用逗号分隔）
+    if (statusParam) {
+      const statuses = statusParam.split(',').map(s => s.trim());
+      if (statuses.length === 1) {
+        where.status = statuses[0];
+      } else {
+        where.status = { in: statuses };
+      }
+    }
+
+    // 草稿箱模式：只显示DRAFT状态
+    if (isDraft) {
+      where.status = 'DRAFT';
     }
 
     // 命名空间过滤
@@ -45,9 +67,17 @@ export async function GET(request: NextRequest) {
       where.namespaceId = namespaceId;
     }
 
+    // 作者过滤
+    if (authorId) {
+      where.authorId = authorId;
+    }
+
     // 只返回已批准的技能（除非用户是管理员或所有者）
     const session = await auth();
     if (!session) {
+      where.status = 'APPROVED';
+    } else if (!statusParam && !isDraft && !authorId) {
+      // 如果未指定状态且不是查询自己的skills，默认只显示已批准的
       where.status = 'APPROVED';
     }
 
@@ -187,4 +217,147 @@ export async function POST(request: NextRequest) {
     console.error('创建技能失败:', error);
     return errorResponse('创建技能失败', 500);
   }
+}
+
+/**
+ * PATCH /api/skills/batch
+ * 批量操作Skills（发布、归档、删除等）
+ * Body:
+ * - skillIds: string[] - Skills ID列表
+ * - action: 'publish' | 'archive' | 'delete' | 'draft' - 操作类型
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await auth();
+    
+    if (!session?.user?.id) {
+      return unauthorizedResponse();
+    }
+
+    const body = await request.json();
+    const { skillIds, action } = body;
+
+    // 验证参数
+    if (!skillIds || !Array.isArray(skillIds) || skillIds.length === 0) {
+      return errorResponse('请提供有效的Skills ID列表', 400);
+    }
+
+    if (!action || !['publish', 'archive', 'delete', 'draft'].includes(action)) {
+      return errorResponse('无效的操作类型', 400);
+    }
+
+    const userId = session.user.id;
+
+    // 验证用户是否有权限操作这些Skills
+    const skills = await prisma.skill.findMany({
+      where: {
+        id: { in: skillIds },
+        authorId: userId, // 只能操作自己的Skills
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    if (skills.length !== skillIds.length) {
+      return errorResponse('部分Skills不存在或没有权限操作', 403);
+    }
+
+    let result;
+
+    // 执行批量操作
+    switch (action) {
+      case 'publish':
+        // 批量发布
+        result = await prisma.skill.updateMany({
+          where: {
+            id: { in: skillIds },
+            authorId: userId,
+          },
+          data: {
+            status: 'PENDING_REVIEW', // 发布后进入审核状态
+            updatedAt: new Date(),
+          },
+        });
+        break;
+
+      case 'archive':
+        // 批量归档
+        result = await prisma.skill.updateMany({
+          where: {
+            id: { in: skillIds },
+            authorId: userId,
+          },
+          data: {
+            status: 'ARCHIVED',
+            updatedAt: new Date(),
+          },
+        });
+        break;
+
+      case 'draft':
+        // 批量转为草稿
+        result = await prisma.skill.updateMany({
+          where: {
+            id: { in: skillIds },
+            authorId: userId,
+          },
+          data: {
+            status: 'DRAFT',
+            updatedAt: new Date(),
+          },
+        });
+        break;
+
+      case 'delete':
+        // 批量删除
+        result = await prisma.skill.deleteMany({
+          where: {
+            id: { in: skillIds },
+            authorId: userId,
+          },
+        });
+        break;
+
+      default:
+        return errorResponse('不支持的操作类型', 400);
+    }
+
+    // 记录审计日志
+    await prisma.auditLog.createMany({
+      data: skillIds.map(skillId => ({
+        action: `SKILL_BATCH_${action.toUpperCase()}`,
+        resourceType: 'Skill',
+        resourceId: skillId,
+        actorId: userId,
+        metadata: {
+          action,
+          skillIds,
+        },
+      })),
+    });
+
+    return successResponse({
+      message: `成功${getActionMessage(action)} ${result.count} 个Skills`,
+      count: result.count,
+      action,
+    });
+  } catch (error) {
+    console.error('批量操作失败:', error);
+    return errorResponse('批量操作失败', 500);
+  }
+}
+
+/**
+ * 获取操作的中文描述
+ */
+function getActionMessage(action: string): string {
+  const messages: Record<string, string> = {
+    publish: '发布',
+    archive: '归档',
+    delete: '删除',
+    draft: '转为草稿',
+  };
+  return messages[action] || '操作';
 }

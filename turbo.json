@@ -39,6 +39,10 @@
         "CYPRESS_INSTALL_BINARY"
       ]
     },
+    "@skillhub/search-sdk#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
     "web#build": {
       "dependsOn": ["^build"],
       "outputs": [".next/**", "!.next/cache/**"],
