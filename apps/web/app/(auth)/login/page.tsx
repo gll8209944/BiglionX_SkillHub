@@ -85,7 +85,8 @@ export default function LoginPage() {
       });
     } catch (error) {
       console.error('密码登录失败:', error);
-      setError('邮箱或密码错误');
+      // 出于安全考虑，不明确区分是用户不存在还是密码错误
+      setError('邮箱或密码错误，请检查后重试');
       setIsLoading(false);
     }
   };

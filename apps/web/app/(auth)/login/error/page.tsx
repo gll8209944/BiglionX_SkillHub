@@ -13,6 +13,8 @@ export default function LoginErrorPage() {
         return '验证链接已过期或无效，请重新发送验证邮件';
       case 'EmailSignin':
         return '邮箱登录失败，请稍后重试';
+      case 'CredentialsSignin':
+        return '邮箱或密码错误，请检查后重试';
       case 'Configuration':
         return '系统配置错误，请联系管理员';
       default:
@@ -73,6 +75,19 @@ export default function LoginErrorPage() {
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   <p>{getErrorMessage(error)}</p>
+                  {error === 'CredentialsSignin' && (
+                    <div className="mt-3 space-y-2">
+                      <p className="text-xs text-red-600">
+                        💡 提示：为了保障账户安全，我们不会明确提示是邮箱未注册还是密码错误。
+                      </p>
+                      <ul className="text-xs text-red-600 list-disc list-inside space-y-1">
+                        <li>请检查邮箱地址是否正确</li>
+                        <li>请确认密码输入无误（注意大小写）</li>
+                        <li>如果忘记密码，可以使用“忘记密码”功能重置</li>
+                        <li>如果还未注册，请先注册账号</li>
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
