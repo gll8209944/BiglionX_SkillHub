@@ -4,6 +4,7 @@ import './globals.css';
 import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 import { ToastProvider } from '@/components/ui/ToastContainer';
 import { startScheduler } from '@/lib/services/TaskScheduler';
+import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -44,7 +45,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <html lang="zh-CN">

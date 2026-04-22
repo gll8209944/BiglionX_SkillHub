@@ -11,14 +11,27 @@ const commentSchema = z.object({
 });
 
 /**
- * GET /api/skills/[skillId]/comments
+ * GET /api/skills/[slug]/comments
  * 获取技能的评论列表
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
+    // 通过 slug 查找技能
+    const skill = await prisma.skill.findUnique({
+      where: { slug: params.slug },
+      select: { id: true },
+    });
+
+    if (!skill) {
+      return NextResponse.json(
+        { error: 'Skill not found' },
+        { status: 404 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
@@ -27,20 +40,19 @@ export async function GET(
     const skip = (page - 1) * limit;
 
     // 构建排序条件
-    let orderBy: any = { createdAt: 'desc' };
-    if (sortBy === 'oldest') {
-      orderBy = { createdAt: 'asc' };
-    } else if (sortBy === 'highest') {
-      orderBy = { rating: 'desc' };
-    } else if (sortBy === 'most_upvoted') {
-      orderBy = { upvotes: 'desc' };
-    }
+    const orderBy: Record<string, 'asc' | 'desc'> = sortBy === 'oldest'
+      ? { createdAt: 'asc' }
+      : sortBy === 'highest'
+      ? { rating: 'desc' }
+      : sortBy === 'most_upvoted'
+      ? { upvotes: 'desc' }
+      : { createdAt: 'desc' };
 
     // 获取顶级评论（没有 parentId 的）
     const [comments, total] = await Promise.all([
       prisma.skillComment.findMany({
         where: {
-          skillId: params.skillId,
+          skillId: skill.id,
           parentId: null, // 只获取顶级评论
         },
         include: {
@@ -75,7 +87,7 @@ export async function GET(
       }),
       prisma.skillComment.count({
         where: {
-          skillId: params.skillId,
+          skillId: skill.id,
           parentId: null,
         },
       }),
@@ -100,12 +112,12 @@ export async function GET(
 }
 
 /**
- * POST /api/skills/[skillId]/comments
+ * POST /api/skills/[slug]/comments
  * 创建新评论
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { skillId: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
     const session = await auth();
@@ -122,16 +134,16 @@ export async function POST(
 
     if (!validation.success) {
       return NextResponse.json(
-        { error: 'Invalid input', details: validation.error.errors },
+        { error: 'Invalid input', details: validation.error.flatten().fieldErrors },
         { status: 400 }
       );
     }
 
     const { content, rating, parentId } = validation.data;
 
-    // 验证技能是否存在
+    // 通过 slug 验证技能是否存在
     const skill = await prisma.skill.findUnique({
-      where: { id: params.skillId },
+      where: { slug: params.slug },
     });
 
     if (!skill) {
@@ -158,7 +170,7 @@ export async function POST(
     // 创建评论
     const comment = await prisma.skillComment.create({
       data: {
-        skillId: params.skillId,
+        skillId: skill.id,
         userId: session.user.id,
         content,
         rating: rating || null,
@@ -177,7 +189,7 @@ export async function POST(
 
     // 如果包含评分，更新技能的平均评分
     if (rating) {
-      await updateSkillRating(params.skillId);
+      await updateSkillRating(skill.id);
     }
 
     // 如果是回复，发送通知给被回复的用户
@@ -233,7 +245,7 @@ async function updateSkillRating(skillId: string) {
   }
 
   const avgRating =
-    ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length;
+    ratings.reduce((sum: number, r: { rating: number | null }) => sum + (r.rating || 0), 0) / ratings.length;
 
   await prisma.skill.update({
     where: { id: skillId },

@@ -269,11 +269,11 @@ export default async function PublicSkillsPage({
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
       {/* 顶部导航 */}
-      <nav className="sticky top-0 z-50 w-full px-6 py-4 border-b border-gray-200 bg-white/90 backdrop-blur-md shadow-sm">
+      <nav className="sticky top-0 z-50 w-full px-6 py-2 border-b border-gray-200 bg-white/90 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <Link href="/" className="flex items-center group">
-              <img src="/logo.png" alt="Skill Hub Logo" className="h-12 w-auto object-contain transition-transform group-hover:scale-105" />
+              <img src="/skillhub.png" alt="Skill Hub Logo" className="h-16 w-auto object-contain transition-transform group-hover:scale-105" />
             </Link>
           </div>
           <div className="flex items-center space-x-6">
@@ -499,7 +499,7 @@ export default async function PublicSkillsPage({
             {/* Logo & Description */}
             <div className="col-span-1 md:col-span-2">
               <div className="mb-4">
-                <img src="/logo.png" alt="Skill Hub Logo" className="h-14 w-auto object-contain" />
+                <img src="/skillhub.png" alt="Skill Hub Logo" className="h-14 w-auto object-contain" />
               </div>
               <p className="text-gray-400 max-w-md leading-relaxed">
                 企业级开源 AI Agent 技能注册中心。发现、发布和管理高质量的 AI 技能，为你的项目赋能。
