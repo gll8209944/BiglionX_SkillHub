@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { createClient } from 'redis';
 import NodeCache from 'node-cache';
 
