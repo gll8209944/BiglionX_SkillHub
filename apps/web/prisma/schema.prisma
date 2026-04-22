@@ -31,6 +31,11 @@ model User {
   sessions           Session[]
   feedbacks          SkillFeedback[]
   skills             Skill[]
+  comments           SkillComment[]    // 用户发表的评论
+  followers          UserFollow[]      @relation("Following")  // 关注我的人
+  following          UserFollow[]      @relation("Followers")  // 我关注的人
+  collections        SkillCollection[] // 创建的合集
+  notifications      Notification[]    // 收到的通知
 
   @@map("users")
 }
@@ -79,6 +84,7 @@ model Skill {
   embeddingVector  Float[]         // pgvector格式 (维度1536，用于高性能向量搜索)
   reviews          Review[]
   feedbacks        SkillFeedback[]
+  comments         SkillComment[]  // 社区评论
   versions         SkillVersion[]
   author           User            @relation(fields: [authorId], references: [id])
   namespace        Namespace?      @relation(fields: [namespaceId], references: [id])
@@ -318,6 +324,84 @@ model SkillFeedback {
   @@map("skill_feedbacks")
 }
 
+// 社区评论系统
+model SkillComment {
+  id          String         @id @default(uuid())
+  skillId     String
+  userId      String
+  parentId    String?        // 支持回复评论
+  content     String         // Markdown 格式评论内容
+  rating      Int?           // 可选评分 (1-5)
+  upvotes     Int            @default(0)
+  isEdited    Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  skill       Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parent      SkillComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies     SkillComment[] @relation("CommentReplies")
+  
+  @@index([skillId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_comments")
+}
+
+// 用户关注系统
+model UserFollow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  
+  follower    User @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+  
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+// 技能收藏/合集
+model SkillCollection {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  isPublic    Boolean  @default(true)
+  skills      Json     // 技能 ID 列表 [{"skillId": "...", "addedAt": "..."}]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isPublic])
+  @@map("skill_collections")
+}
+
+// 通知系统
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
 model CrawlerConfig {
   id          String   @id @default(uuid())
   configKey   String   @unique
@@ -374,4 +458,13 @@ enum UserRole {
   USER
   ADMIN
   SUPER_ADMIN
+}
+
+enum NotificationType {
+  COMMENT_REPLY        // 评论回复
+  SKILL_RATED          // 技能被评分
+  FOLLOW               // 被关注
+  SKILL_UPDATED        // 关注的技能更新
+  MENTION              // 被提及
+  SYSTEM               // 系统通知
 }
