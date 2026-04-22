@@ -72,9 +72,63 @@ const nextAuth = NextAuth({
     strategy: 'jwt',
   },
   callbacks: {
-    async jwt({ token, profile }) {
+    async signIn({ user, account }) {
+      // 处理 OAuthAccountNotLinked 错误
+      // 如果用户使用 OAuth 登录，且邮箱已存在，自动关联账号
+      if (account?.provider === 'github' && user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: user.email },
+        });
+
+        if (existingUser) {
+          // 检查是否已经关联了 GitHub 账号
+          const existingAccount = await prisma.account.findFirst({
+            where: {
+              userId: existingUser.id,
+              provider: 'github',
+            },
+          });
+
+          // 如果没有关联，则自动创建关联
+          if (!existingAccount) {
+            await prisma.account.create({
+              data: {
+                userId: existingUser.id,
+                type: account.type,
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+                access_token: account.access_token,
+                expires_at: account.expires_at,
+                token_type: account.token_type,
+                scope: account.scope,
+                id_token: account.id_token,
+                session_state: account.session_state,
+              },
+            });
+          }
+          
+          // 更新用户信息（如果有变化）
+          if (user.name && user.name !== existingUser.name) {
+            await prisma.user.update({
+              where: { id: existingUser.id },
+              data: {
+                name: user.name,
+                image: user.image || existingUser.image,
+              },
+            });
+          }
+        }
+      }
+      
+      return true;
+    },
+    async jwt({ token, profile, user }) {
+      // 当用户登录时，token.user 会包含用户信息
+      if (user) {
+        token.id = user.id;
+      }
       if (profile) {
-        token.id = profile.id || profile.sub;
+        token.id = profile.id || profile.sub || token.id;
         token.name = profile.name as string | undefined;
         token.email = profile.email as string | undefined;
         // GitHub profile 可能包含 avatar_url 或 image
