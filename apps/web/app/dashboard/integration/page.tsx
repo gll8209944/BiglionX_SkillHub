@@ -129,6 +129,60 @@ results.forEach(result => {
 
           {/* 右侧内容 */}
           <div className="lg:col-span-2 space-y-8">
+            {/* Widget 推广卡片 */}
+            <section className="bg-linear-to-br from-purple-500 via-pink-500 to-indigo-500 rounded-xl shadow-lg p-8 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-32 -mt-32" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-3xl -ml-24 -mb-24" />
+              
+              <div className="relative z-10">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                      <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold">SkillHub Widget</h2>
+                      <p className="text-sm text-white/90">开发者的 Skill 元数据管理器</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-yellow-400 text-yellow-900">
+                    ✨ NEW
+                  </span>
+                </div>
+                
+                <p className="text-white/90 mb-6 leading-relaxed">
+                  需要更完整的 UI 组件？Widget 提供现成的搜索界面、管理面板和主题定制功能，一行代码即可集成到您的应用中！
+                </p>
+                
+                <div className="flex flex-wrap gap-3 mb-6">
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                    🔍 智能搜索
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                    📦 本地管理
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                    🎨 主题定制
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm bg-white/20 backdrop-blur-sm">
+                    🚀 一键发布
+                  </span>
+                </div>
+                
+                <Link
+                  href="/widget-demo"
+                  className="inline-flex items-center px-6 py-3 bg-white text-purple-700 font-semibold rounded-xl hover:bg-gray-50 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105"
+                >
+                  查看 Widget 演示
+                  <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </Link>
+              </div>
+            </section>
+
             {/* 快速开始 */}
             <section id="quick-start" className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">🚀 快速开始</h2>

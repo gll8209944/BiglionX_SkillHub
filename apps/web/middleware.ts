@@ -1,5 +1,5 @@
-import { auth } from '@/lib/auth-config';
 import { NextResponse, type NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -22,6 +22,12 @@ export async function middleware(request: NextRequest) {
   
   // 内容安全策略 (CSP)
   // 注意：根据实际需求调整 CSP 策略
+  // 开发环境允许 localhost 的所有端口，生产环境限制更严格
+  const isDev = process.env.NODE_ENV === 'development';
+  const connectSrc = isDev 
+    ? "connect-src 'self' http://localhost:* ws://localhost:* https://*.googleapis.com; "
+    : "connect-src 'self' https://*.googleapis.com; ";
+  
   response.headers.set(
     'Content-Security-Policy',
     "default-src 'self'; " +
@@ -29,7 +35,7 @@ export async function middleware(request: NextRequest) {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; " +
     "img-src 'self' data: https: blob:; " +
     "font-src 'self' https://fonts.gstatic.com; " +
-    "connect-src 'self' https://*.googleapis.com; " +
+    connectSrc +
     "frame-ancestors 'none';"
   );
   
@@ -61,8 +67,14 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedPath) {
-    const session = await auth();
-    if (!session) {
+    // 使用 getToken 代替 auth()，因为 middleware 运行在 Edge Runtime
+    // getToken 只验证 JWT token，不需要访问数据库
+    const token = await getToken({ 
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+    
+    if (!token) {
       return NextResponse.redirect(
         new URL('/login', process.env.NEXTAUTH_URL || 'http://localhost:3000')
       );

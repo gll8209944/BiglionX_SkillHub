@@ -111,6 +111,87 @@ export default function BountiesPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* 顶部导航 */}
+      <nav className="sticky top-0 z-50 w-full px-6 py-2 border-b border-gray-200 bg-white/90 backdrop-blur-md shadow-sm">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Link href="/" className="flex items-center group">
+              <img src="/skillhub.png" alt="Skill Hub Logo" className="h-16 w-auto object-contain transition-transform group-hover:scale-105" />
+            </Link>
+          </div>
+          <div className="flex items-center space-x-6">
+            <Link
+              href="/"
+              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+            >
+              首页
+            </Link>
+            <Link
+              href="/bounties"
+              className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors flex items-center gap-1"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              技能悬赏
+            </Link>
+            <Link
+              href="https://github.com/BigLionX/SkillHub"
+              target="_blank"
+              className="text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors flex items-center gap-1.5"
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path
+                  fillRule="evenodd"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+                  clipRule="evenodd"
+                />
+              </svg>
+              GitHub
+            </Link>
+            <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
+              {session ? (
+                <>
+                  <Link
+                    href="/dashboard"
+                    className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    控制台
+                  </Link>
+                  <div className="flex items-center space-x-2">
+                    {session.user?.image && (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || 'User'}
+                        className="w-8 h-8 rounded-full"
+                      />
+                    )}
+                    <span className="text-sm text-gray-700">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    登录
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors"
+                  >
+                    注册
+                  </Link>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </nav>
+
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">

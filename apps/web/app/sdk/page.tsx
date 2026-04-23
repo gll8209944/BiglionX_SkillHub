@@ -5,6 +5,7 @@ import {
   CheckCircle, Star, Download, TrendingUp, Users 
 } from 'lucide-react';
 import HeroCarousel from '@/components/ui/HeroCarousel';
+import CodeSnippet from '@/components/ui/CodeSnippet';
 
 /**
  * SDK营销落地页
@@ -27,12 +28,6 @@ export default function SDKLandingPage() {
               className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
             >
               首页
-            </Link>
-            <Link
-              href="/skills"
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              Skill仓库
             </Link>
             <Link
               href="/sdk"
@@ -62,6 +57,70 @@ export default function SDKLandingPage() {
       <section className="relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <HeroCarousel />
+        </div>
+      </section>
+
+      {/* Quick Start Section */}
+      <section className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+              快速开始
+            </h2>
+            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+              只需三步，即可为您的应用添加强大的搜索功能
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {/* Step 1 */}
+            <div className="bg-linear-to-br from-blue-50 to-cyan-50 rounded-2xl p-8 border border-blue-100">
+              <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mb-6">
+                1
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">安装 SDK</h3>
+              <CodeSnippet
+                title="npm 安装"
+                code="npm install @skillhub/search-sdk"
+                language="bash"
+              />
+            </div>
+
+            {/* Step 2 */}
+            <div className="bg-linear-to-br from-purple-50 to-pink-50 rounded-2xl p-8 border border-purple-100">
+              <div className="w-12 h-12 bg-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mb-6">
+                2
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">初始化客户端</h3>
+              <CodeSnippet
+                title="TypeScript"
+                code={`import { SearchSDK } from '@skillhub/search-sdk';
+
+const sdk = new SearchSDK({
+  apiUrl: 'https://api.skillhub.com',
+});`}
+                language="typescript"
+              />
+            </div>
+
+            {/* Step 3 */}
+            <div className="bg-linear-to-br from-green-50 to-emerald-50 rounded-2xl p-8 border border-green-100">
+              <div className="w-12 h-12 bg-green-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mb-6">
+                3
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">执行搜索</h3>
+              <CodeSnippet
+                title="搜索示例"
+                code={`const results = await sdk.search({
+  query: 'AI助手',
+  pageSize: 10,
+});
+
+console.log(results.skills);`}
+                language="typescript"
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -391,6 +450,116 @@ searchSkills();`}</code>
                 <div>
                   <div className="font-semibold text-gray-900">王后端</div>
                   <div className="text-sm text-gray-500">Node.js开发者</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Related Product - Widget */}
+      <section className="py-20 bg-linear-to-br from-indigo-50 via-purple-50 to-pink-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="bg-white rounded-3xl shadow-xl overflow-hidden">
+            <div className="grid md:grid-cols-2 gap-0">
+              {/* Left Content */}
+              <div className="p-10 flex flex-col justify-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 rounded-full text-sm font-medium mb-6 w-fit">
+                  <Package className="w-4 h-4" />
+                  相关产品推荐
+                </div>
+                
+                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                  SkillHub Widget
+                </h2>
+                <p className="text-lg text-gray-600 mb-6 leading-relaxed">
+                  如果您需要更完整的 UI 组件，而不仅仅是 SDK，那么 Widget 是您的最佳选择！
+                  提供现成的搜索界面、管理面板和主题定制功能。
+                </p>
+                
+                <div className="space-y-3 mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">即插即用的 UI 组件</div>
+                      <div className="text-sm text-gray-600">无需自己开发界面，直接使用精美组件</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">本地 Skill 管理</div>
+                      <div className="text-sm text-gray-600">创建、编辑、发布 Skills，一站式管理</div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-0.5">
+                      <CheckCircle className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">主题完全定制</div>
+                      <div className="text-sm text-gray-600">颜色、圆角、字体，随心所欲</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex flex-wrap gap-4">
+                  <Link
+                    href="/widget-demo"
+                    className="inline-flex items-center px-6 py-3 bg-linear-to-r from-indigo-600 to-purple-600 text-white font-semibold rounded-xl hover:shadow-lg transform hover:scale-105 transition-all duration-200"
+                  >
+                    <Zap className="w-5 h-5 mr-2" />
+                    查看 Widget 演示
+                    <ArrowRight className="w-5 h-5 ml-2" />
+                  </Link>
+                  <Link
+                    href="/sdk"
+                    className="inline-flex items-center px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:border-indigo-600 hover:text-indigo-600 transition-colors"
+                  >
+                    继续使用 SDK
+                  </Link>
+                </div>
+              </div>
+              
+              {/* Right Preview */}
+              <div className="bg-linear-to-br from-indigo-600 via-purple-600 to-pink-600 p-10 flex items-center justify-center">
+                <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 w-full max-w-md border border-white/20">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center">
+                      <Package className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <div className="text-white font-semibold">Widget 预览</div>
+                      <div className="text-white/70 text-sm">一行代码集成</div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/90 rounded-lg p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-indigo-500 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-purple-500 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 bg-pink-500 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 flex gap-2">
+                    <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full">智能搜索</span>
+                    <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full">本地管理</span>
+                    <span className="px-3 py-1 bg-white/20 text-white text-xs rounded-full">一键发布</span>
+                  </div>
                 </div>
               </div>
             </div>

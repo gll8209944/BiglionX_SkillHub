@@ -15,11 +15,6 @@ declare module '*.css' {
   export default content;
 }
 
-// 显式声明 globals.css（用于副作用导入，不需要实际导入内容）
-declare module './globals.css' {
-  export {}
-}
-
 interface SearchHistoryAPI {
   addToHistory: (query: string) => void;
   clearHistory: () => void;

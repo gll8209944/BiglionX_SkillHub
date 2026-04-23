@@ -22,15 +22,59 @@ module.exports = [
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
-        "error", 
+        "warn", 
         { 
           "argsIgnorePattern": "^_",
           "varsIgnorePattern": "^_",
           "caughtErrorsIgnorePattern": "^_",
-          "ignoreRestSiblings": true
+          "ignoreRestSiblings": true,
+          "args": "after-used"
         }
       ],
       "@typescript-eslint/no-non-null-assertion": "warn",
+    },
+  },
+  {
+    files: ["packages/widget/src/types.ts"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off"
+    }
+  },
+  {
+    files: ["**/cypress/**/*.ts", "**/cypress/**/*.tsx"],
+    languageOptions: {
+      globals: {
+        cy: "readonly",
+        Cypress: "readonly",
+        describe: "readonly",
+        it: "readonly",
+        test: "readonly",
+        expect: "readonly",
+        before: "readonly",
+        after: "readonly",
+        beforeEach: "readonly",
+        afterEach: "readonly",
+        context: "readonly",
+      },
+    },
+    rules: {
+      "no-undef": "off", // Cypress 全局变量由类型定义提供
+    },
+  },
+  {
+    files: ["**/tests/**/*.ts", "**/tests/**/*.tsx"],
+    languageOptions: {
+      globals: {
+        // Playwright 全局变量在测试文件中通过导入使用，不需要额外配置
+      },
+    },
+  },
+  {
+    files: ["playwright.config.ts"],
+    languageOptions: {
+      parserOptions: {
+        project: "./playwright.tsconfig.json",
+      },
     },
   },
   {

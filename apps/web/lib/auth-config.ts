@@ -122,8 +122,20 @@ const nextAuth = NextAuth({
       
       return true;
     },
+    async redirect({ url, baseUrl }) {
+      // 处理登录后的重定向
+      // 如果是相对路径，使用 baseUrl
+      if (url.startsWith('/')) {
+        return `${baseUrl}${url}`;
+      }
+      // 如果是同域名的绝对路径
+      else if (new URL(url).origin === baseUrl) {
+        return url;
+      }
+      // 默认返回 baseUrl
+      return baseUrl;
+    },
     async jwt({ token, profile, user }) {
-      // 当用户登录时，token.user 会包含用户信息
       if (user) {
         token.id = user.id;
       }
@@ -131,14 +143,13 @@ const nextAuth = NextAuth({
         token.id = profile.id || profile.sub || token.id;
         token.name = profile.name as string | undefined;
         token.email = profile.email as string | undefined;
-        // GitHub profile 可能包含 avatar_url 或 image
         const githubProfile = profile as Record<string, unknown>;
         token.picture = (githubProfile.avatar_url || githubProfile.image) as string | undefined;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
+      if (session.user && token.id) {
         session.user.id = token.id as string;
         session.user.name = token.name as string;
         session.user.email = token.email as string;

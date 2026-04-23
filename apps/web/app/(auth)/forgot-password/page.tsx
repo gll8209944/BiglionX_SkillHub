@@ -50,15 +50,26 @@ export default function ForgotPasswordPage() {
       <div className="max-w-md w-full space-y-8 p-8 md:p-10 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50">
         {/* Logo 和标题 */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 flex items-center justify-center mb-4">
-            <img src="/logo.png" alt="Skill Hub Logo" className="w-full h-full object-contain" />
-          </div>
+          <Link href="/" className="inline-block group">
+            <div className="mx-auto h-60 w-60 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+              <img src="/logo.png" alt="Skill Hub Logo - 点击返回首页" className="w-full h-full object-contain" />
+            </div>
+          </Link>
           <h2 className="mt-2 text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             忘记密码
           </h2>
           <p className="mt-2 text-sm text-gray-500">
             输入您的邮箱，我们将发送密码重置链接
           </p>
+          <Link 
+            href="/" 
+            className="inline-flex items-center mt-4 text-sm text-blue-600 hover:text-blue-500 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            返回首页
+          </Link>
         </div>
 
         {!success ? (

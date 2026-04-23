@@ -2,6 +2,8 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
 import { TrendingUp, Download, Users, Star, Calendar } from 'lucide-react';
 import {
   LineChart,
@@ -34,9 +36,17 @@ interface SkillItem {
   status: string;
 }
 
+interface TopSkill {
+  id: string;
+  name: string;
+  category: string;
+  downloadCount: number;
+}
+
 const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
 export default function AnalyticsPage() {
+  const { status } = useSession();
   const [period, setPeriod] = useState<'7d' | '30d' | '90d'>('30d');
   const [activeTab, setActiveTab] = useState<'platform' | 'personal'>('platform');
 
@@ -60,29 +70,87 @@ export default function AnalyticsPage() {
     },
   });
 
-  // 获取个人数据
+  // 获取个人数据（仅在已登录且切换到个人标签时请求）
   const { data: personalData } = useQuery({
     queryKey: ['analytics', 'personal'],
     queryFn: async () => {
-      const response = await fetch('/api/analytics/personal');
+      const response = await fetch('/api/analytics/personal', {
+        credentials: 'include', // 携带 cookies 进行身份验证
+      });
       if (!response.ok) throw new Error('获取个人数据失败');
       return response.json();
     },
-    enabled: activeTab === 'personal',
+    enabled: activeTab === 'personal' && status === 'authenticated', // 仅在已登录且选中个人标签时启用
+    retry: false, // 禁用自动重试
   });
 
   const trendData = trendsData?.data || [];
   
+  // 使用真实 API 数据，如果没有数据则显示空数组
   const categoryData = platformData?.data?.skillsByCategory?.map((item: CategoryItem, index: number) => ({
     name: item.category,
     value: item.count,
     color: COLORS[index % COLORS.length],
-  })) || [
-    { name: 'AI Agent', value: 30, color: COLORS[0] },
-    { name: 'Development', value: 25, color: COLORS[1] },
-    { name: 'Data', value: 20, color: COLORS[2] },
-    { name: 'Automation', value: 15, color: COLORS[3] },
-  ];
+  })) || [];
+
+  // 如果未登录且切换到个人标签，显示登录提示
+  if (status === 'unauthenticated') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">数据分析</h1>
+            <p className="mt-1 text-sm text-gray-600">查看平台和个人的详细统计数据</p>
+          </div>
+        </div>
+        
+        {/* Tabs */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button
+              onClick={() => setActiveTab('platform')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'platform'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              平台数据
+            </button>
+            <button
+              onClick={() => setActiveTab('personal')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'personal'
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              个人数据
+            </button>
+          </nav>
+        </div>
+
+        {activeTab === 'personal' ? (
+          <div className="flex items-center justify-center min-h-100">
+            <div className="text-center">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">请先登录</h2>
+              <p className="text-gray-600 mb-4">登录后才能查看个人数据分析</p>
+              <Link
+                href="/auth/signin"
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+              >
+                去登录
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center min-h-100">
+            <LoadingSpinner size="lg" />
+          </div>
+        )}
+      </div>
+    );
+  }
 
   if (isLoadingPlatform) {
     return (
@@ -92,13 +160,14 @@ export default function AnalyticsPage() {
     );
   }
 
+  // 使用真实数据，如果没有则显示 0
   const stats = platformData?.data || {
-    totalSkills: 156,
-    totalDownloads: 12543,
-    totalUsers: 342,
-    averageRating: 4.5,
-    weeklyGrowth: 12,
-    activeUsers: 89,
+    totalSkills: 0,
+    totalDownloads: 0,
+    totalUsers: 0,
+    averageRating: 0,
+    weeklyGrowth: 0,
+    activeUsers: 0,
   };
 
   return (
@@ -292,27 +361,33 @@ export default function AnalyticsPage() {
             {/* 热门 Skills */}
             <div className="bg-white p-6 rounded-lg shadow-sm border">
               <h3 className="text-lg font-medium text-gray-900 mb-4">热门 Skills Top 10</h3>
-              <div className="space-y-3">
-                {Array.from({ length: 10 }, (_, i) => (
-                  <div key={i} className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-gray-900">Skill #{i + 1}</p>
-                      <p className="text-xs text-gray-500">Category {i % 4}</p>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-32 bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full"
-                          style={{ width: `${Math.random() * 100}%` }}
-                        ></div>
+              {platformData?.data?.topSkills && platformData.data.topSkills.length > 0 ? (
+                <div className="space-y-3">
+                  {platformData.data.topSkills.slice(0, 10).map((skill: TopSkill) => (
+                    <div key={skill.id} className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-gray-900">{skill.name}</p>
+                        <p className="text-xs text-gray-500">{skill.category}</p>
                       </div>
-                      <span className="text-sm text-gray-600 w-16 text-right">
-                        {Math.floor(Math.random() * 1000)}
-                      </span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-32 bg-gray-200 rounded-full h-2">
+                          <div
+                            className="bg-blue-600 h-2 rounded-full"
+                            style={{ width: `${(skill.downloadCount / platformData.data.topSkills[0].downloadCount) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm text-gray-600 w-16 text-right">
+                          {skill.downloadCount}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="flex items-center justify-center h-40 text-gray-500">
+                  暂无数据
+                </div>
+              )}
             </div>
           </div>
         </>

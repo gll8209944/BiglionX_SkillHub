@@ -26,6 +26,8 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get('status');
     const category = searchParams.get('category');
+    const creatorId = searchParams.get('creatorId');
+    const applicantId = searchParams.get('applicantId');
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
     const sortBy = searchParams.get('sortBy') || 'createdAt';
@@ -33,11 +35,40 @@ export async function GET(request: NextRequest) {
 
     const where: Record<string, unknown> = {};
     
-    if (status) {
+    // 如果指定了 creatorId=me，获取当前用户发布的悬赏
+    if (creatorId === 'me') {
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { success: false, error: '请先登录' },
+          { status: 401 }
+        );
+      }
+      where.creatorId = session.user.id;
+    } else if (status) {
+      // 否则按状态过滤
       where.status = status;
     } else {
       // 默认只显示开放的悬赏
       where.status = 'OPEN';
+    }
+
+    // 如果指定了 applicantId=me，获取当前用户申请的悬赏
+    if (applicantId === 'me') {
+      const session = await auth();
+      if (!session?.user?.id) {
+        return NextResponse.json(
+          { success: false, error: '请先登录' },
+          { status: 401 }
+        );
+      }
+      // 通过 applications 表查找用户申请过的悬赏
+      const applications = await prisma.bountyApplication.findMany({
+        where: { userId: session.user.id },
+        select: { bountyId: true },
+      });
+      const bountyIds = applications.map(app => app.bountyId);
+      where.id = { in: bountyIds };
     }
 
     if (category) {

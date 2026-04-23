@@ -14,13 +14,9 @@ export default function LoginPage() {
   const handleGitHubLogin = async () => {
     try {
       setIsLoading(true);
-      // 先获取合适的重定向URL
-      const redirectResponse = await fetch('/api/auth/redirect-url');
-      const { redirectUrl } = await redirectResponse.json();
-      
-      await signIn('github', { 
-        callbackUrl: redirectUrl
-      });
+      // GitHub OAuth 登录，不指定 callbackUrl
+      // NextAuth 会使用默认的回调 URL
+      await signIn('github');
     } catch (error) {
       console.error('GitHub 登录失败:', error);
       alert('GitHub 登录失败，请稍后重试');
@@ -40,13 +36,12 @@ export default function LoginPage() {
 
     try {
       setIsLoading(true);
-      // 先获取合适的重定向URL
-      const redirectResponse = await fetch('/api/auth/redirect-url');
-      const { redirectUrl } = await redirectResponse.json();
       
+      // 邮箱验证码登录，使用默认回调
+      // NextAuth 会自动处理重定向到验证页面
       await signIn('resend', {
         email,
-        callbackUrl: redirectUrl,
+        // 不指定 callbackUrl，让 NextAuth 使用默认行为
       });
       // NextAuth v5 会自动重定向到验证页面
     } catch (error) {
@@ -59,34 +54,54 @@ export default function LoginPage() {
   const handlePasswordLogin = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
-    
+      
     if (!email || !email.includes('@')) {
       setError('请输入有效的邮箱地址');
       return;
     }
-
+  
     if (!password) {
       setError('请输入密码');
       return;
     }
-
+  
     try {
       setIsLoading(true);
-      // 先获取合适的重定向URL
-      const redirectResponse = await fetch('/api/auth/redirect-url');
-      const { redirectUrl } = await redirectResponse.json();
-      
-      // NextAuth v5 会自动重定向，如果失败会抛出错误
-      await signIn('credentials', {
+        
+      console.log('[Login] 尝试登录...', { email });
+        
+      // 直接登录,不预先获取 redirect URL
+      // NextAuth 会在登录成功后根据 session 状态处理重定向
+      const result = await signIn('credentials', {
         email,
         password,
-        redirect: true,
-        callbackUrl: redirectUrl,
+        redirect: false, // 先不自动重定向
       });
+        
+      console.log('[Login] 登录结果:', result);
+        
+      if (result?.error) {
+        // 登录失败
+        console.error('[Login] 登录失败:', result.error);
+        setError('邮箱或密码错误,请检查后重试');
+        setIsLoading(false);
+        return;
+      }
+        
+      console.log('[Login] 登录成功,获取重定向 URL...');
+        
+      // 登录成功,获取重定向 URL
+      const redirectResponse = await fetch('/api/auth/redirect-url');
+      const { redirectUrl } = await redirectResponse.json();
+        
+      console.log('[Login] 重定向到:', redirectUrl);
+        
+      // 手动重定向到正确的页面
+      window.location.href = redirectUrl;
     } catch (error) {
-      console.error('密码登录失败:', error);
-      // 出于安全考虑，不明确区分是用户不存在还是密码错误
-      setError('邮箱或密码错误，请检查后重试');
+      console.error('[Login] 登录异常:', error);
+      // 出于安全考虑,不明确区分是用户不存在还是密码错误
+      setError('邮箱或密码错误,请检查后重试');
       setIsLoading(false);
     }
   };
@@ -96,15 +111,26 @@ export default function LoginPage() {
       <div className="max-w-md w-full space-y-8 p-8 md:p-10 bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl border border-white/50">
         {/* Logo 和标题 */}
         <div className="text-center">
-          <div className="mx-auto h-20 w-20 flex items-center justify-center mb-4">
-            <img src="/logo.png" alt="Skill Hub Logo" className="w-full h-full object-contain" />
-          </div>
+          <Link href="/" className="inline-block group">
+            <div className="mx-auto h-60 w-60 flex items-center justify-center mb-4 transition-transform group-hover:scale-105">
+              <img src="/skillhub.png" alt="Skill Hub Logo - 点击返回首页" className="w-full h-full object-contain" />
+            </div>
+          </Link>
           <h2 className="mt-2 text-3xl font-bold bg-linear-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
             欢迎使用 Skill Hub
           </h2>
           <p className="mt-2 text-sm text-gray-500">
             AI Agent 技能注册中心
           </p>
+          <Link 
+            href="/" 
+            className="inline-flex items-center mt-4 text-sm text-blue-600 hover:text-blue-500 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            返回首页
+          </Link>
         </div>
 
         {/* 选项卡切换 */}

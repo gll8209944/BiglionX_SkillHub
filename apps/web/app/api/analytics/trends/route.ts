@@ -1,82 +1,82 @@
-import { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth-config';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 
-// 强制动态渲染，因为需要访问 headers() 进行身份验证
-export const dynamic = 'force-dynamic';
-
-/**
- * GET /api/analytics/trends
- * 获取趋势数据(Skills 增长和下载量)
- */
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
-    const session = await auth();
-
-    if (!session?.user) {
-      return unauthorizedResponse();
-    }
-
     const { searchParams } = new URL(request.url);
-    const period = searchParams.get('period') || '30d'; // 7d, 30d, 90d
+    const period = searchParams.get('period') || '30d';
 
-    // 计算日期范围
+    // 计算时间范围
     const now = new Date();
-    const startDate = new Date();
+    let startDate = new Date();
+    let groupBy: 'day' | 'week' = 'day';
     
-    switch (period) {
-      case '7d':
-        startDate.setDate(now.getDate() - 7);
-        break;
-      case '30d':
-        startDate.setDate(now.getDate() - 30);
-        break;
-      case '90d':
-        startDate.setDate(now.getDate() - 90);
-        break;
-      default:
-        startDate.setDate(now.getDate() - 30);
+    if (period === '7d') {
+      startDate.setDate(now.getDate() - 7);
+      groupBy = 'day';
+    } else if (period === '30d') {
+      startDate.setDate(now.getDate() - 30);
+      groupBy = 'day';
+    } else if (period === '90d') {
+      startDate.setDate(now.getDate() - 90);
+      groupBy = 'week';
     }
 
-    // 获取每天的 Skills 创建数量
-    const skillsByDay = await prisma.skill.groupBy({
-      by: ['createdAt'],
+    // 获取时间范围内的 Skills
+    const skills = await prisma.skill.findMany({
       where: {
         createdAt: {
           gte: startDate,
         },
-        status: 'APPROVED',
       },
-      _count: true,
+      select: {
+        createdAt: true,
+        downloadCount: true,
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
     });
 
-    // 按天聚合(简化版 - 实际应该使用数据库的 DATE_TRUNC)
-    const dailySkills: Record<string, number> = {};
-    skillsByDay.forEach((item: { createdAt: Date; _count: number }) => {
-      const date = new Date(item.createdAt).toISOString().split('T')[0];
-      dailySkills[date] = (dailySkills[date] || 0) + item._count;
-    });
-
-    // 生成趋势数据
-    const trends = [];
-    const days = period === '7d' ? 7 : period === '30d' ? 30 : 90;
+    // 按天或按周分组统计数据
+    const groupedData: Record<string, { date: string; skills: number; downloads: number }> = {};
     
-    for (let i = days - 1; i >= 0; i--) {
-      const date = new Date(now);
-      date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split('T')[0];
+    skills.forEach(skill => {
+      const date = new Date(skill.createdAt);
+      let key: string;
       
-      trends.push({
-        date: `${date.getMonth() + 1}/${date.getDate()}`,
-        skills: dailySkills[dateStr] || 0,
-        downloads: Math.floor(Math.random() * 100) + 50, // TODO: 从审计日志获取真实数据
-      });
-    }
+      if (groupBy === 'day') {
+        key = date.toISOString().split('T')[0]; // YYYY-MM-DD
+      } else {
+        // 按周分组，使用该周的第一天作为 key
+        const dayOfWeek = date.getDay();
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - dayOfWeek);
+        key = weekStart.toISOString().split('T')[0];
+      }
+      
+      if (!groupedData[key]) {
+        groupedData[key] = { date: key, skills: 0, downloads: 0 };
+      }
+      
+      groupedData[key].skills += 1;
+      groupedData[key].downloads += skill.downloadCount;
+    });
 
-    return successResponse(trends);
+    // 转换为数组并排序
+    const trendData = Object.values(groupedData).sort((a, b) => 
+      new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+
+    return NextResponse.json({
+      success: true,
+      data: trendData,
+    });
   } catch (error) {
     console.error('获取趋势数据失败:', error);
-    return errorResponse('获取趋势数据失败', 500);
+    return NextResponse.json(
+      { error: '获取趋势数据失败' },
+      { status: 500 }
+    );
   }
 }

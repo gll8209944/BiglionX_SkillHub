@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Package, Download, DollarSign, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { StatCard, StatsGrid } from '@/components/ui/StatCard';
 import { TimeRangeSelector, type TimeRange } from '@/components/ui/TimeRangeSelector';
 
@@ -30,21 +31,66 @@ interface PersonalStats {
 }
 
 export default function DashboardPage() {
+  const { status } = useSession();
   const [timeRange, setTimeRange] = useState<TimeRange>('all');
 
-  // 获取个人统计数据
+  // 获取个人统计数据（仅在已登录时请求）
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['personal-stats', timeRange],
     queryFn: async () => {
-      const response = await fetch(`/api/analytics/personal?timeRange=${timeRange}`);
+      // 双重检查：确保已登录才发起请求
+      if (status !== 'authenticated') {
+        throw new Error('未登录');
+      }
+      
+      const response = await fetch(`/api/analytics/personal?timeRange=${timeRange}`, {
+        credentials: 'include', // 携带 cookies
+      });
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('请先登录');
+        }
         throw new Error('获取统计数据失败');
       }
       const result = await response.json();
       return result.data as PersonalStats;
     },
     staleTime: 5 * 60 * 1000, // 5分钟内不重新请求
+    enabled: status === 'authenticated', // 仅在已登录时启用查询
+    retry: false, // 禁用自动重试
+    refetchOnWindowFocus: false, // 禁用窗口聚焦时重新获取
+    refetchOnMount: false, // 禁用挂载时重新获取
+    refetchOnReconnect: false, // 禁用网络重连时重新获取
   });
+
+  // 如果未登录或加载中，显示相应提示
+  if (status === 'unauthenticated') {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">请先登录</h2>
+          <p className="text-gray-600 mb-4">登录后才能查看个人数据</p>
+          <Link
+            href="/auth/signin"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            去登录
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === 'loading') {
+    return (
+      <div className="flex items-center justify-center min-h-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   const stats = data || {
     totalSkills: 0,
@@ -88,6 +134,12 @@ export default function DashboardPage() {
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
         <div className="flex flex-wrap gap-3">
           <Link
+            href="/dashboard/analytics"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            查看详细分析
+          </Link>
+          <Link
             href="/dashboard/skills/new"
             className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
@@ -101,16 +153,31 @@ export default function DashboardPage() {
             管理 Skills
           </Link>
           <Link
+            href="/dashboard/bounties"
+            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          >
+            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            我的悬赏
+          </Link>
+          <Link
             href="/dashboard/namespaces"
             className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
           >
             管理命名空间
           </Link>
           <Link
-            href="/dashboard/analytics"
-            className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            href="/widget-demo"
+            className="inline-flex items-center px-4 py-2 border border-purple-300 text-sm font-medium rounded-lg text-purple-700 bg-purple-50 hover:bg-purple-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
           >
-            查看详细分析
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z" />
+            </svg>
+            Skill 元数据管理器
+            <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-purple-200 text-purple-800">
+              NEW
+            </span>
           </Link>
           <Link
             href="/dashboard/integration"

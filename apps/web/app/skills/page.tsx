@@ -1,13 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { auth } from '@/lib/auth';
 import EnhancedSearchBox from '@/components/ui/EnhancedSearchBox';
 import SkillCard from '@/components/ui/SkillCard';
 import AdvancedFilterPanel from '@/components/ui/AdvancedFilterPanel';
 import Pagination from '@/components/ui/Pagination';
 import SearchHistory from '@/components/ui/SearchHistory';
 import GlobalSearchLoadingIndicator from '@/components/ui/GlobalSearchLoadingIndicator';
-import SDKPromoBanner from '@/components/ui/SDKPromoBanner';
+import PromoCards from '@/components/ui/PromoCards';
 
 // Define types
 interface SkillWithRelations {
@@ -63,6 +64,9 @@ export default async function PublicSkillsPage({
 }: {
   searchParams: SearchParams;
 }) {
+  // 获取用户登录状态
+  const session = await auth();
+  
   const query = searchParams.q;
   const category = searchParams.category;
   const subcategory = searchParams.subcategory;
@@ -293,9 +297,6 @@ export default async function PublicSkillsPage({
 
   return (
     <div className="min-h-screen bg-linear-to-br from-gray-50 via-white to-gray-100">
-      {/* SDK推广横幅 */}
-      <SDKPromoBanner />
-      
       {/* 顶部导航 */}
       <nav className="sticky top-0 z-50 w-full px-6 py-2 border-b border-gray-200 bg-white/90 backdrop-blur-md shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
@@ -307,15 +308,9 @@ export default async function PublicSkillsPage({
           <div className="flex items-center space-x-6">
             <Link
               href="/"
-              className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
-            >
-              首页
-            </Link>
-            <Link
-              href="/skills"
               className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
             >
-              Skill仓库
+              首页
             </Link>
             <Link
               href="/bounties"
@@ -341,18 +336,52 @@ export default async function PublicSkillsPage({
               GitHub
             </Link>
             <div className="flex items-center space-x-3 pl-4 border-l border-gray-200">
-              <Link
-                href="/login"
-                className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
-              >
-                登录
-              </Link>
-              <Link
-                href="/register"
-                className="px-5 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
-              >
-                注册
-              </Link>
+              {session ? (
+                <>
+                  {/* 已登录状态 */}
+                  <Link
+                    href="/dashboard"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                  >
+                    {session.user?.image ? (
+                      <img
+                        src={session.user.image}
+                        alt={session.user.name || '用户头像'}
+                        className="w-8 h-8 rounded-full object-cover border-2 border-blue-200"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-linear-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {session.user?.name?.charAt(0) || session.user?.email?.charAt(0) || 'U'}
+                      </div>
+                    )}
+                    <span className="max-w-25 truncate">
+                      {session.user?.name || session.user?.email}
+                    </span>
+                  </Link>
+                  <Link
+                    href="/api/auth/signout"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-red-600 border border-gray-300 hover:border-red-300 rounded-lg transition-colors"
+                  >
+                    退出
+                  </Link>
+                </>
+              ) : (
+                <>
+                  {/* 未登录状态 */}
+                  <Link
+                    href="/login"
+                    className="px-5 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors"
+                  >
+                    登录
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    注册
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -450,6 +479,11 @@ export default async function PublicSkillsPage({
                 count: c.count,
               }))}
             />
+                  
+            {/* 推广卡片 */}
+            <div className="mt-6">
+              <PromoCards />
+            </div>
           </aside>
 
           {/* 主内容区 */}
@@ -638,11 +672,6 @@ export default async function PublicSkillsPage({
                 <li>
                   <Link href="/" className="hover:text-white transition-colors">
                     首页
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/skills" className="hover:text-white transition-colors">
-                    Skill仓库
                   </Link>
                 </li>
                 <li>

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 import { ToastProvider } from '@/components/ui/ToastContainer';
+import { SessionProvider } from '@/components/providers/SessionProvider';
 import { startScheduler } from '@/lib/services/TaskScheduler';
 import type { ReactNode } from 'react';
 
@@ -34,10 +35,7 @@ export const metadata: Metadata = {
   title: 'Skill Hub - AI Agent Skills Registry',
   description: 'Enterprise-grade, open-source AI agent skill registry',
   icons: {
-    icon: [
-      { url: '/favicon.ico', type: 'image/x-icon' },
-      { url: '/icon.png', type: 'image/png' },
-    ],
+    icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
 };
@@ -50,9 +48,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className={inter.className}>
-        <ReactQueryProvider>
-          <ToastProvider>{children}</ToastProvider>
-        </ReactQueryProvider>
+        <SessionProvider>
+          <ReactQueryProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </ReactQueryProvider>
+        </SessionProvider>
       </body>
     </html>
   );

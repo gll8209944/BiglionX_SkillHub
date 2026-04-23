@@ -54,7 +54,10 @@ Thumbs.db
 *.sqlite3
 
 # Turbo
-.turbo
+.turbo/
+
+# TypeScript build info
+*.tsbuildinfo
 
 # Prisma
 prisma/migrations/

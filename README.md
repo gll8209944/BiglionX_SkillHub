@@ -208,21 +208,34 @@ ORM: Prisma
 
 ## 📚 文档
 
-- [📖 开发计划](./DEVELOPMENT_PLAN.md) - 完整的10周开发路线图
+### 快速开始
 - [🚀 快速开始](./docs/QUICK_START.md) - 5分钟快速上手
-- [📡 API文档](./BACKEND_API_IMPLEMENTATION.md) - REST API参考
 - [🐳 部署指南](./docs/DEPLOYMENT.md) - Docker和K8s部署
 - [🔧 开发指南](./CONTRIBUTING.md) - 本地开发和贡献
+
+### 部署准备
+- [🧹 部署前清理指南](./docs/DEPLOYMENT_CLEANUP_GUIDE.md) - **清理临时文件和归档文档**
+- [✅ 部署前检查清单](./docs/PRE_DEPLOYMENT_CHECKLIST.md) - **完整的部署验证清单**
+- [📝 清理总结](./docs/CLEANUP_SUMMARY.md) - **本次清理工作记录**
+- [⚡ 快速参考](./docs/QUICK_CLEANUP_REFERENCE.md) - **一键清理命令**
+
+### 技术文档
+- [📖 开发计划](./DEVELOPMENT_PLAN.md) - 完整的10周开发路线图
+- [📡 API文档](./BACKEND_API_IMPLEMENTATION.md) - REST API参考
 - [📊 项目状态](./WEEK9_COMPLETE_FINAL_REPORT.md) - 最新开发报告
 - [🔍 完成度审查](./PROJECT_COMPLETENESS_REVIEW.md) - 功能完整性审查
 - [🗺️ 网站地图](./apps/web/SITEMAP_README.md) - SEO和搜索引擎优化
 - [🏗️ 双模式架构](./docs/DUAL_MODE_ARCHITECTURE.md) - **详细说明两种使用模式**
+
+### v2.0 全球搜索
 - [🔍 v2.0进度](./GLOBAL_SKILLS_SEARCH_PLAN_COMPLETION_CHECK.md) - **v2.0完成情况检查**
 - [✅ 测试报告](./UNIT_TEST_COMPLETION_20260419.md) - **单元测试完成报告**
 - [🚀 v2.0 Beta更新](./PROJECT_UPDATE_v2.0_BETA.md) - **最新Beta进展 (2026-04-19)**
 - [📝 更新总结](./UPDATE_SUMMARY_20260419.md) - **快速更新摘要**
-- [🎯 我的SkillHub优化计划](./docs/MY_SKILLHUB_OPTIMIZATION_PLAN.md) - **个人中心功能全面升级方案**
-- [📋 开发任务清单](./docs/MY_SKILLHUB_DEVELOPMENT_TASKS.md) - **详细的开发任务和里程碑**
+
+### 我的 SkillHub 优化
+- [🎯 优化计划](./docs/MY_SKILLHUB_OPTIMIZATION_PLAN.md) - **个人中心功能全面升级方案**
+- [📋 任务清单](./docs/MY_SKILLHUB_DEVELOPMENT_TASKS.md) - **详细的开发任务和里程碑**
 
 ---
 
