@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Package, Download, DollarSign, RefreshCw } from 'lucide-react';
+import { Package, Download, DollarSign, RefreshCw, Bot, Globe, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
@@ -325,6 +325,55 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* AI Agent 集成推广卡片 */}
+      <div className="mt-8">
+        <a
+          href="https://skillhub.proclaw.cc/api/openapi"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group block relative overflow-hidden bg-linear-to-r from-orange-500 via-red-500 to-pink-500 rounded-xl p-6 text-white hover:shadow-xl transition-all duration-300 hover:scale-[1.01]"
+        >
+          {/* 背景装饰 */}
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-2xl -mr-20 -mt-20" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -ml-16 -mb-16" />
+          
+          <div className="relative z-10">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                    <Bot className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold">AI Agent 集成</h3>
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-400 text-purple-900 mt-1">
+                      NEW
+                    </span>
+                  </div>
+                </div>
+                <p className="text-sm text-white/90 mb-3">
+                  OpenAPI 3.0 标准接口，支持 Flowise、LangChain、Dify 等平台自动发现和调用 SkillHub 的技能
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm">
+                    <Globe className="w-3 h-3 mr-1" />
+                    OpenAPI 3.0
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm">
+                    <Bot className="w-3 h-3 mr-1" />
+                    AI 工具
+                  </span>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-white/20 backdrop-blur-sm">
+                    ⚡ 即插即用
+                  </span>
+                </div>
+              </div>
+              <ArrowRight className="w-6 h-6 opacity-0 group-hover:opacity-100 group-hover:translate-x-2 transition-all mt-3" />
+            </div>
+          </div>
+        </a>
+      </div>
     </div>
   );
 }
