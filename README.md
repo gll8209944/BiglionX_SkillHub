@@ -147,6 +147,7 @@ npm run dev
 - 📚 **自动索引** - 将新技能的元数据（名称、描述、下载链接等）添加到数据库 ✅ 已实现
 - 🌍 **全球覆盖** - 支持数十万个Skills的搜索和管理
 - 🔄 **智能调度** - 多Agent协作完成复杂发现和更新任务（规划中）
+- 🔌 **AI Agent 集成** - 支持 Flowise、LangChain、Dify 等平台自动发现和调用 Skills ✅ 已完成
 
 #### 工作原理
 
@@ -179,7 +180,42 @@ skillhub skill search "replenishment"
 skillhub config set registry https://skillhub.proclaw.cc
 ```
 
-### 10. ClawHub兼容
+### 10. AI Agent 集成 (Flowise / LangChain / Dify)
+
+SkillHub 提供标准的 **OpenAPI 3.0** 接口，可被 AI Agent 平台自动发现和调用：
+
+#### 自动发现端点
+```bash
+# OpenAPI 3.0 规范文档
+GET https://skillhub.proclaw.cc/api/openapi
+
+# 工具发现接口（面向 LLM）
+GET https://skillhub.proclaw.cc/api/tools/discovery
+```
+
+#### 可用的 AI 工具
+
+| 工具 ID | 功能 | 端点 |
+|---------|------|------|
+| `skillhub-search` | 搜索 AI 技能和工具 | `/api/search` |
+| `skillhub-get-detail` | 获取技能详细信息 | `/api/skills/{slug}` |
+| `skillhub-semantic-search` | 语义搜索技能 | `/api/search/semantic` |
+| `skillhub-list-bounties` | 查看悬赏任务 | `/api/bounties` |
+
+#### Flowise 集成步骤
+
+1. **添加自定义工具**：在 Flowise 中选择 "Custom Tool" → "Import from URL"
+2. **输入 OpenAPI 地址**：`https://skillhub.proclaw.cc/api/openapi`
+3. **自动识别**：Flowise 会自动解析所有可用的 SkillHub API
+4. **拖拽使用**：将工具拖入工作流，AI Agent 即可调用
+
+#### 支持的 AI 平台
+- ✅ **Flowise** - 可视化 LLM 应用构建器
+- ✅ **LangChain** - Python/JS LLM 框架
+- ✅ **Dify** - 开源 LLM 应用开发平台
+- ✅ **Coze** - 字节跳动 Bot 开发平台
+
+### 11. ClawHub兼容
 
 完全兼容ClawHub协议，OpenClaw等Agent可直接使用：
 
@@ -201,7 +237,8 @@ ORM: Prisma
 缓存: Redis
 存储: S3/MinIO/R2 (可配置)
 认证: NextAuth.js
-部署: Docker Compose / Kubernetes
+部署: Docker Compose / Kubernetes / Vercel
+AI集成: OpenAPI 3.0, Flowise, LangChain, Dify
 ```
 
 ---
@@ -222,6 +259,7 @@ ORM: Prisma
 ### 技术文档
 - [📖 开发计划](./DEVELOPMENT_PLAN.md) - 完整的10周开发路线图
 - [📡 API文档](./BACKEND_API_IMPLEMENTATION.md) - REST API参考
+- [ Flowise 集成指南](./FLOWISE_INTEGRATION_GUIDE.md) - **AI Agent 集成教程**
 - [📊 项目状态](./WEEK9_COMPLETE_FINAL_REPORT.md) - 最新开发报告
 - [🔍 完成度审查](./PROJECT_COMPLETENESS_REVIEW.md) - 功能完整性审查
 - [🗺️ 网站地图](./apps/web/SITEMAP_README.md) - SEO和搜索引擎优化
@@ -345,6 +383,7 @@ const skills = await store.search('inventory');
 - [x] SkillsMP集成 (Phase 1) ✅
 - [x] 智能爬虫系统 (Phase 2) ✅
 - [x] 单元测试 (97个测试，100%通过) ✅
+- [x] **AI Agent 集成 (Flowise / OpenAPI 3.0)** ✅
 - [ ] Skill Seekers集成 (Phase 2) ⚠️ 部分完成
 - [ ] DeerFlow 2.0集成 (Phase 3)
 - [ ] 搜索系统实现 (Phase 5)
