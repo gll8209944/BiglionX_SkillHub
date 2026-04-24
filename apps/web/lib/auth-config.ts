@@ -102,7 +102,7 @@ const nextAuth = NextAuth({
                 token_type: account.token_type,
                 scope: account.scope,
                 id_token: account.id_token,
-                session_state: account.session_state,
+                session_state: account.session_state ? String(account.session_state) : null,
               },
             });
           }
@@ -140,7 +140,13 @@ const nextAuth = NextAuth({
         token.id = user.id;
       }
       if (profile) {
-        token.id = profile.id || profile.sub || token.id;
+        // 确保 id 是字符串类型，处理可能的 JsonValue 类型
+        const profileId = profile.id || profile.sub;
+        if (typeof profileId === 'string') {
+          token.id = profileId;
+        } else if (profileId !== null && profileId !== undefined) {
+          token.id = String(profileId);
+        }
         token.name = profile.name as string | undefined;
         token.email = profile.email as string | undefined;
         const githubProfile = profile as Record<string, unknown>;

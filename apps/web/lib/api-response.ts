@@ -1,29 +1,53 @@
 import { NextResponse } from 'next/server';
 
 /**
+ * API 响应数据类型
+ */
+type ApiResponseData = Record<string, unknown> | Array<unknown> | string | number | boolean | null;
+
+/**
+ * 验证错误项类型
+ */
+type ValidationError = {
+  field?: string;
+  message: string;
+  code?: string;
+};
+
+/**
  * 创建成功响应
  */
-export function successResponse(data: any, status = 200) {
-  return NextResponse.json(
-    {
+export function successResponse(data: ApiResponseData, status = 200) {
+  return new NextResponse(
+    JSON.stringify({
       success: true,
       data,
-    },
-    { status }
+    }),
+    { 
+      status,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    }
   );
 }
 
 /**
  * 创建错误响应
  */
-export function errorResponse(message: string, status = 400, errors?: any[]) {
-  return NextResponse.json(
-    {
+export function errorResponse(message: string, status = 400, errors?: ValidationError[]) {
+  return new NextResponse(
+    JSON.stringify({
       success: false,
       message,
       errors,
-    },
-    { status }
+    }),
+    { 
+      status,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+      },
+    }
   );
 }
 

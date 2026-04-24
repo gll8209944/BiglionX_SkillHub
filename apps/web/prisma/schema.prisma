@@ -86,6 +86,7 @@ model Skill {
   syncStatus       String?
   embedding        Json?
   embeddingVector  Float[]
+  executionConfig  Json? // Flowise 集成配置：存储 API 端点、Docker 镜像或执行参数
   reviews          Review[]
   bounties         SkillBounty[]
   comments         SkillComment[]
