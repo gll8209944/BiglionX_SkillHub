@@ -23,10 +23,15 @@ export async function register() {
     console.log('');
     
     // Fire and forget - don't await to avoid blocking server startup
-    startScheduler().then(() => {
-      console.log('\n✅ Task Scheduler initialized successfully\n');
-    }).catch((error) => {
-      console.error('\n❌ Task Scheduler initialization failed:', error);
+    // 使用 setImmediate 确保不阻塞 Next.js 服务器启动
+    setImmediate(async () => {
+      try {
+        await startScheduler();
+        console.log('\n✅ Task Scheduler initialized successfully\n');
+      } catch (error) {
+        console.error('\n⚠️ Task Scheduler initialization failed (non-critical):', error instanceof Error ? error.message : error);
+        console.log('⚠️ Website will still function normally without scheduler\n');
+      }
     });
   }
 }
