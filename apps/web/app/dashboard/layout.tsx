@@ -61,14 +61,15 @@ export default async function DashboardLayout({
                     )}
                     <span className="text-sm text-gray-700">{user.name}</span>
                   </div>
-                  <form action="/api/auth/signout" method="POST">
-                    <button
-                      type="submit"
-                      className="text-sm text-gray-600 hover:text-gray-900"
-                    >
-                      退出登录
-                    </button>
-                  </form>
+                  <button
+                    onClick={async () => {
+                      const { handleSignOut } = await import('@/app/actions/auth-actions')
+                      await handleSignOut()
+                    }}
+                    className="text-sm text-gray-600 hover:text-gray-900"
+                  >
+                    退出登录
+                  </button>
                 </>
               )}
             </div>

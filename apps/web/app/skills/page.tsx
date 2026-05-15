@@ -358,12 +358,15 @@ export default async function PublicSkillsPage({
                       {session.user?.name || session.user?.email}
                     </span>
                   </Link>
-                  <Link
-                    href="/api/auth/signout"
+                  <button
+                    onClick={async () => {
+                      const { handleSignOut } = await import('@/app/actions/auth-actions')
+                      await handleSignOut()
+                    }}
                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-red-600 border border-gray-300 hover:border-red-300 rounded-lg transition-colors"
                   >
                     退出
-                  </Link>
+                  </button>
                 </>
               ) : (
                 <>
