@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth-config';
 import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-response';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';

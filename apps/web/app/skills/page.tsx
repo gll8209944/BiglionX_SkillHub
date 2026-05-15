@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { auth } from '@/lib/auth';
+import { auth } from '@/lib/auth-config';
 import EnhancedSearchBox from '@/components/ui/EnhancedSearchBox';
 import SkillCard from '@/components/ui/SkillCard';
 import AdvancedFilterPanel from '@/components/ui/AdvancedFilterPanel';
