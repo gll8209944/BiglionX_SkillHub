@@ -2,6 +2,7 @@ import cron, { ScheduledTask } from 'node-cron';
 import { SkillsImportService } from './SkillsImportService';
 import { CrawlerService } from './CrawlerService';
 import { getCrawlerConfigService, type CrawlerConfigData } from './CrawlerConfigService';
+import { ensureDatabaseConnection } from '@/lib/db-health';
 
 /**
  * 定时任务调度器
@@ -26,6 +27,17 @@ export class TaskScheduler {
    */
   async start(): Promise<void> {
     console.log('🕒 Starting task scheduler...');
+
+    // 首先确保数据库连接可用（Neon 自动唤醒）
+    console.log('🔍 Checking database connection...');
+    const dbConnected = await ensureDatabaseConnection(3, 2000);
+    
+    if (!dbConnected) {
+      console.warn('⚠️  Database connection failed, scheduler will retry later');
+      // 不阻断调度器启动，允许稍后重试
+    } else {
+      console.log('✅ Database connection established');
+    }
 
     // 加载配置
     try {
