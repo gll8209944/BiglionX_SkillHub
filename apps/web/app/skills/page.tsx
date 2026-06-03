@@ -10,6 +10,10 @@ import SearchHistory from '@/components/ui/SearchHistory';
 import GlobalSearchLoadingIndicator from '@/components/ui/GlobalSearchLoadingIndicator';
 import PromoCards from '@/components/ui/PromoCards';
 
+// 强制动态渲染，避免缓存导致的问题
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 // Define types
 interface SkillWithRelations {
   id: string;

@@ -20,6 +20,7 @@ module.exports = [
       "@typescript-eslint": tsPlugin,
     },
     rules: {
+      "no-unused-vars": "off", // Handled by @typescript-eslint/no-unused-vars
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": [
         "warn", 

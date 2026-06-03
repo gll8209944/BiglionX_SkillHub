@@ -66,7 +66,7 @@ export class SemanticSearchService {
       
       if (cachedResult) {
         console.log('💾 使用缓存的搜索结果');
-        return cachedResult;
+        return cachedResult as SemanticSearchResult[];
       }
 
       // 2. 生成查询文本的embedding（带缓存）
@@ -96,7 +96,25 @@ export class SemanticSearchService {
       // 4. 缓存搜索结果
       await embeddingCacheService.setSearchResult(query, filters, results);
       
-      return results;
+      return results.map(r => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        description: r.description,
+        category: r.category,
+        subcategory: r.subcategory ?? undefined,
+        tags: r.tags,
+        languages: r.languages,
+        qualityScore: r.qualityScore,
+        starCount: r.starCount,
+        downloadCount: r.downloadCount,
+        authorName: r.authorName ?? undefined,
+        repositoryUrl: r.repositoryUrl ?? undefined,
+        documentationUrl: r.documentationUrl ?? undefined,
+        source: r.source ?? undefined,
+        updatedAt: r.updatedAt,
+        similarity: r.similarity ?? 0,
+      }));
     } catch (error) {
       console.error('❌ 语义搜索失败:', error);
       throw error;
@@ -120,7 +138,7 @@ export class SemanticSearchService {
       
       if (cachedResult) {
         console.log('💾 使用缓存的相关Skills');
-        return cachedResult;
+        return cachedResult as SemanticSearchResult[];
       }
 
       // 2. 获取目标skill的embedding
@@ -168,7 +186,25 @@ export class SemanticSearchService {
       // 5. 缓存结果
       await embeddingCacheService.setSearchResult(cacheKey, '', filteredResults);
       
-      return filteredResults;
+      return filteredResults.map(r => ({
+        id: r.id,
+        name: r.name,
+        slug: r.slug,
+        description: r.description,
+        category: r.category,
+        subcategory: r.subcategory ?? undefined,
+        tags: r.tags,
+        languages: r.languages,
+        qualityScore: r.qualityScore,
+        starCount: r.starCount,
+        downloadCount: r.downloadCount,
+        authorName: r.authorName ?? undefined,
+        repositoryUrl: r.repositoryUrl ?? undefined,
+        documentationUrl: r.documentationUrl ?? undefined,
+        source: r.source ?? undefined,
+        updatedAt: r.updatedAt,
+        similarity: r.similarity ?? 0,
+      }));
     } catch (error) {
       console.error('❌ 获取相关技能失败:', error);
       throw error;

@@ -1,58 +1,106 @@
 ﻿# Skill Hub 项目文档
 
-> 最后更新: 2026-04-19  
-> 状态: ✅ v1.0.0 已发布, 🚧 v2.0 Beta 开发中 (Phase 1-2 完成，单元测试通过)
+最后更新: 2026-06-03
 
-## 📚 文档说明
+## 文档结构
 
-### 🗺️ 文档索引 (新增 ✨)
+```
+docs/
+├── README.md              # 本文档 - 文档目录索引
+├── deployment/            # 部署相关
+│   ├── DEPLOYMENT.md
+│   ├── DEPLOYMENT_CLEANUP_GUIDE.md
+│   ├── PRE_DEPLOYMENT_CHECKLIST.md
+│   ├── NEON_DATABASE_AUTOWAKE_GUIDE.md
+│   └── VERCEL_DEPLOYMENT_FIX.md
+├── features/              # 功能文档
+│   ├── BOUNTY_SYSTEM_GUIDE.md
+│   ├── COMMUNITY_BUILDING_PLAN.md
+│   ├── COMMUNITY_FEATURES_PROGRESS.md
+│   ├── PASSWORD_LOGIN_FIX.md
+│   ├── PASSWORD_LOGIN_FINAL_FIX.md
+│   ├── LOGOUT_REDIRECT_STRATEGY.md
+│   ├── AUTH_PAGES_LOGO_IMPROVEMENT.md
+│   ├── LOGO_IMAGE_UPDATE.md
+│   ├── PROMO_CARDS_OPTIMIZATION.md
+│   ├── GLOBAL_SEARCH_ARCHITECTURE.md
+│   ├── GLOBAL_SKILLS_SEARCH_PLAN.md
+│   ├── DUAL_MODE_ARCHITECTURE.md
+│   └── SkillHub_行业技能仓库增强需求_PRD_v2.0.md
+├── integration/           # 集成指南
+│   ├── DEERFLOW_INTEGRATION_GUIDE.md
+│   ├── FLOWISE_INTEGRATION_GUIDE.md
+│   ├── FRONTEND_INTEGRATION_GUIDE.md
+│   ├── SKILLSMP_INTEGRATION_GUIDE.md
+│   └── SKILL_SEEKERS_CRAWLER_GUIDE.md
+├── widget/                # Widget 模块
+│   ├── WIDGET_DEVELOPMENT_SUMMARY.md
+│   ├── WIDGET_INTEGRATION_REPORT.md
+│   ├── WIDGET_MODULE_FIX.md
+│   ├── WIDGET_PROMOTION_SUMMARY.md
+│   ├── WIDGET_QUICK_START.md
+│   └── WIDGET_DEMO_SEO_OPTIMIZATION.md
+└── plans/                 # 开发计划与方案
+    ├── SKILLHUB_DEVELOPMENT_PLAN_V2.md
+    ├── SKILLHUB_OPEN_SOURCE_REVIEW.md
+    ├── SKILLHUB_PLAN_COMPARISON.md
+    └── SKILLHUB_QUICK_START_CHECKLIST.md
+```
 
-- **[DOCUMENTATION_INDEX.md](./DOCUMENTATION_INDEX.md)** - **完整文档导航和快速查找** ⭐⭐⭐
+## 部署 (deployment/)
 
-### 核心文档
+| 文档 | 说明 |
+|------|------|
+| DEPLOYMENT.md | 部署流程指南 |
+| DEPLOYMENT_CLEANUP_GUIDE.md | 部署前清理指南 |
+| PRE_DEPLOYMENT_CHECKLIST.md | 部署前检查清单 |
+| NEON_DATABASE_AUTOWAKE_GUIDE.md | Neon 数据库自动唤醒指南 |
+| VERCEL_DEPLOYMENT_FIX.md | Vercel 部署修复记录 |
 
-- **README.md** - 项目介绍和快速开始指南 (⭐ 主入口)
-- **DEVELOPMENT_PLAN.md** - Monorepo开发计划 v2.1
-- **PROJECT_SUMMARY.md** - 项目总结
-- **RELEASE_NOTES_v1.0.0.md** - v1.0.0 版本发布说明
-- **PROJECT_UPDATE_v1.0.md** - 最新功能进展报告
-- **GLOBAL_SKILLS_SEARCH_PLAN.md** - v2.0 全球Skills搜索引擎计划
-- **GLOBAL_SKILLS_SEARCH_PLAN_COMPLETION_CHECK.md** - v2.0 任务完成情况检查报告 (新增 ⭐)
-- **UNIT_TEST_COMPLETION_20260419.md** - 单元测试完成报告 (新增 ✨)
-- **TEST_COMPLETION_REPORT_20260419.md** - 测试完成总结报告 (新增 ✨)
+## 功能 (features/)
 
-### 参考文档 (docs/)
+| 文档 | 说明 |
+|------|------|
+| BOUNTY_SYSTEM_GUIDE.md | 技能悬赏系统指南 |
+| COMMUNITY_BUILDING_PLAN.md | 社区建设计划 |
+| COMMUNITY_FEATURES_PROGRESS.md | 社区功能进展 |
+| PASSWORD_LOGIN_FIX.md | 密码登录修复记录 |
+| PASSWORD_LOGIN_FINAL_FIX.md | 密码登录最终修复 |
+| LOGOUT_REDIRECT_STRATEGY.md | 登出重定向策略 |
+| AUTH_PAGES_LOGO_IMPROVEMENT.md | 认证页面 Logo 优化 |
+| LOGO_IMAGE_UPDATE.md | Logo 图片更新 |
+| PROMO_CARDS_OPTIMIZATION.md | 推广卡片优化 |
+| GLOBAL_SEARCH_ARCHITECTURE.md | 全球搜索架构设计 |
+| GLOBAL_SKILLS_SEARCH_PLAN.md | 全球 Skills 搜索引擎计划 |
+| DUAL_MODE_ARCHITECTURE.md | 双模式架构设计 |
+| SkillHub_行业技能仓库增强需求_PRD_v2.0.md | v2.0 PRD 文档 |
 
-- **SKILLHUB_DEVELOPMENT_PLAN_V2.md** - 详细技术计划 (v2.0)
-- **SKILLHUB_OPEN_SOURCE_REVIEW.md** - iflytek/SkillHub审查报告
-- **SKILLHUB_PLAN_COMPARISON.md** - v1.0 vs v2.0对比分析
-- **SKILLHUB_QUICK_START_CHECKLIST.md** - Week 1快速启动清单
-- **SKILLSMP_INTEGRATION_GUIDE.md** - SkillsMP集成指南 (新增)
-- **SKILL_SEEKERS_CRAWLER_GUIDE.md** - Skill Seekers爬虫配置指南 (新增)
-- **DEERFLOW_INTEGRATION_GUIDE.md** - DeerFlow 2.0集成指南 (新增)
-- **GLOBAL_SEARCH_ARCHITECTURE.md** - 全球搜索架构设计 (新增)
+## 集成 (integration/)
 
-## 🚀 快速开始
+| 文档 | 说明 |
+|------|------|
+| DEERFLOW_INTEGRATION_GUIDE.md | DeerFlow 2.0 集成指南 |
+| FLOWISE_INTEGRATION_GUIDE.md | Flowise 集成指南 |
+| FRONTEND_INTEGRATION_GUIDE.md | 前端集成指南 |
+| SKILLSMP_INTEGRATION_GUIDE.md | SkillsMP 集成指南 |
+| SKILL_SEEKERS_CRAWLER_GUIDE.md | Skill Seekers 爬虫配置指南 |
 
-### 新用户
-1. 阅读根目录的 **README.md** 了解项目概况
-2. 查看 **RELEASE_NOTES_v1.0.0.md** 了解已发布功能
-3. 按照部署指南启动应用
+## Widget (widget/)
 
-### 开发者
-1. 阅读 **DEVELOPMENT_PLAN.md** 了解架构设计
-2. 查看 **PROJECT_UPDATE_v1.0.md** 了解最新进展
-3. 参考 **docs/SKILLHUB_QUICK_START_CHECKLIST.md** 获取详细步骤
+| 文档 | 说明 |
+|------|------|
+| WIDGET_DEVELOPMENT_SUMMARY.md | Widget 开发总结 |
+| WIDGET_INTEGRATION_REPORT.md | Widget 集成报告 |
+| WIDGET_MODULE_FIX.md | Widget 模块修复 |
+| WIDGET_PROMOTION_SUMMARY.md | Widget 推广总结 |
+| WIDGET_QUICK_START.md | Widget 快速开始 |
+| WIDGET_DEMO_SEO_OPTIMIZATION.md | Widget Demo SEO 优化 |
 
-### v2.0 开发者 (全球搜索引擎)
-1. 阅读 **GLOBAL_SKILLS_SEARCH_PLAN.md** 了解v2.0规划
-2. 查看 **GLOBAL_SKILLS_SEARCH_PLAN_COMPLETION_CHECK.md** 了解当前进度 ⭐
-3. 查看 **SKILLSMP_INTEGRATION_GUIDE.md** 了解SkillsMP集成
-4. 参考 **SKILL_SEEKERS_CRAWLER_GUIDE.md** 配置爬虫系统
-5. 学习 **DEERFLOW_INTEGRATION_GUIDE.md** 集成DeerFlow 2.0
-6. 阅读 **UNIT_TEST_COMPLETION_20260419.md** 了解测试质量 ✨
+## 开发计划 (plans/)
 
-## 📞 联系
-
-- Website: https://skillhub.proclaw.cc
-- Email: hello@skillhub.proclaw.cc
+| 文档 | 说明 |
+|------|------|
+| SKILLHUB_DEVELOPMENT_PLAN_V2.md | 详细技术计划 (v2.0) |
+| SKILLHUB_OPEN_SOURCE_REVIEW.md | iflytek/SkillHub 审查报告 |
+| SKILLHUB_PLAN_COMPARISON.md | v1.0 vs v2.0 对比分析 |
+| SKILLHUB_QUICK_START_CHECKLIST.md | Week 1 快速启动清单 |

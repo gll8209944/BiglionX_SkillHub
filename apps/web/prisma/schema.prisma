@@ -79,6 +79,7 @@ model Skill {
   qualityScore     Float           @default(0)
   repositoryUrl    String?
   source           String?
+  type             SkillType       @default(PROMPT)
   sourceId         String?
   sourceUrl        String?
   starCount        Int             @default(0)
@@ -86,12 +87,22 @@ model Skill {
   syncStatus       String?
   embedding        Json?
   embeddingVector  Float[]
+  industryTags     String[]
+  pluginCompatible Boolean         @default(false)
+  pluginIds        String[]
+  inputSchema      Json?
+  outputSchema     Json?
+  categoryPath     String?
+  locale           String          @default("zh-CN")
   executionConfig  Json? // Flowise 集成配置：存储 API 端点、Docker 镜像或执行参数
   reviews          Review[]
   bounties         SkillBounty[]
   comments         SkillComment[]
   feedbacks        SkillFeedback[]
   versions         SkillVersion[]
+  knowledgeFragment KnowledgeFragment?
+  childItems       SkillPackItem[] @relation("SkillPackParent")
+  parentPacks      SkillPackItem[] @relation("SkillPackChild")
   author           User            @relation(fields: [authorId], references: [id])
   namespace        Namespace?      @relation(fields: [namespaceId], references: [id])
 
@@ -566,4 +577,68 @@ enum SubmissionStatus {
   APPROVED
   REJECTED
   NEEDS_REVISION
+}
+
+enum SkillType {
+  PROMPT
+  KNOWLEDGE
+  RULE
+  SKILL_PACK
+}
+
+model KnowledgeFragment {
+  id           String   @id @default(uuid())
+  skillId      String   @unique
+  skill        Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  version      Int      @default(1)
+  contentType  String   @default("json")
+  content      Json?
+  rawContent   String?
+  vectorized   Boolean  @default(false)
+  chunkCount   Int      @default(0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([skillId])
+  @@map("knowledge_fragments")
+}
+
+model KnowledgeVersion {
+  id              String   @id @default(uuid())
+  skillId         String
+  knowledgeId     String
+  version         Int
+  contentSnapshot Json
+  changelog       String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+
+  @@index([skillId, knowledgeId, version])
+  @@map("knowledge_versions")
+}
+
+model KnowledgeEmbedding {
+  id          String   @id @default(uuid())
+  skillId     String
+  knowledgeId String
+  chunkIndex  Int
+  chunkText   String
+  embedding   Float[]
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([skillId])
+  @@map("knowledge_embeddings")
+}
+
+model SkillPackItem {
+  packId       String
+  childSkillId String
+  sortOrder    Int      @default(0)
+  pack         Skill    @relation("SkillPackParent", fields: [packId], references: [id], onDelete: Cascade)
+  childSkill   Skill    @relation("SkillPackChild", fields: [childSkillId], references: [id], onDelete: Cascade)
+
+  @@id([packId, childSkillId])
+  @@map("skill_pack_items")
 }

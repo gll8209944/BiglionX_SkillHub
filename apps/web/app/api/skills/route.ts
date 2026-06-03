@@ -143,11 +143,18 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, slug, description, category, tags, namespaceId } = body;
+    const { name, slug, description, category, tags, namespaceId, type, industry_tags, plugin_compatible, plugin_ids, input_schema, output_schema, category_path, locale } = body;
 
     // 验证必填字段
     if (!name || !slug) {
       return errorResponse('名称和 Slug 为必填项', 400);
+    }
+
+    // 验证技能类型
+    const skillType = (type || 'PROMPT').toUpperCase();
+    const validTypes = ['PROMPT', 'KNOWLEDGE', 'RULE', 'SKILL_PACK'];
+    if (!validTypes.includes(skillType)) {
+      return errorResponse(`无效的技能类型「${type}」，支持的类型：${validTypes.join(', ')}`, 400);
     }
 
     // 检查 slug 是否已存在
@@ -193,6 +200,14 @@ export async function POST(request: NextRequest) {
         namespaceId: namespaceId || null,
         status: 'DRAFT',
         version: '1.0.0',
+        type: skillType as 'PROMPT' | 'KNOWLEDGE' | 'RULE' | 'SKILL_PACK',
+        industryTags: industry_tags || [],
+        pluginCompatible: plugin_compatible || false,
+        pluginIds: plugin_ids || [],
+        inputSchema: input_schema || undefined,
+        outputSchema: output_schema || undefined,
+        categoryPath: category_path || null,
+        locale: locale || 'zh-CN',
       },
       include: {
         author: {

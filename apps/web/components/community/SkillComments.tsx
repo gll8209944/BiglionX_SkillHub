@@ -17,6 +17,7 @@ interface Comment {
   isEdited: boolean;
   createdAt: string;
   updatedAt: string;
+  parentId?: string | null;
   user: {
     id: string;
     name?: string | null;
@@ -164,9 +165,9 @@ export function CommentForm({
       
       <Textarea
         value={content}
-        onChange={(e) => setContent(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setContent(e.target.value)}
         placeholder={placeholder}
-        className="min-h-[100px]"
+        className="min-h-25"
         disabled={isSubmitting}
       />
       
@@ -254,20 +255,20 @@ export function CommentItem({
             )}
           </div>
 
-          {comment.rating && (
+          {(() => { const cr = comment.rating; return cr != null ? (
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                   key={star}
                   className={`w-4 h-4 ${
-                    star <= comment.rating!
+                    star <= cr
                       ? 'fill-yellow-400 text-yellow-400'
                       : 'text-gray-300'
                   }`}
                 />
               ))}
             </div>
-          )}
+          ) : null; })()}
 
           <div className="text-sm whitespace-pre-wrap">{comment.content}</div>
 
@@ -395,7 +396,7 @@ export function CommentSection({ skillId, currentUserId }: CommentSectionProps) 
         <h3 className="text-lg font-semibold">评论</h3>
         <select
           value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSortBy(e.target.value as 'newest' | 'oldest' | 'highest' | 'most_upvoted')}
           className="text-sm border rounded px-2 py-1"
         >
           <option value="newest">最新</option>
