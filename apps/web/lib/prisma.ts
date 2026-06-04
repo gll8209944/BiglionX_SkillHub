@@ -6,11 +6,11 @@ const globalForPrisma = globalThis as unknown as {
 
 // Neon 连接优化：
 // - connection_limit=1: Neon 免费套餐限制为 1
-// - pool_timeout=10: 连接池等待超时 10 秒（给 Neon 足够唤醒时间）
-// 注意：不设置 connect_timeout，让 Prisma 等待 Neon 自然唤醒（通常 1-5 秒）
+// - pool_timeout=10: 连接池等待超时
+// - connect_timeout=8: TCP 连接超时 8 秒（给 Neon 唤醒时间，且不超过 Vercel 10 秒限制）
 const baseUrl = process.env.DATABASE_URL || '';
 const timeoutParams = baseUrl.includes('?') ? '&' : '?';
-const optimizedUrl = `${baseUrl}${timeoutParams}connection_limit=1&pool_timeout=10`;
+const optimizedUrl = `${baseUrl}${timeoutParams}connection_limit=1&pool_timeout=10&connect_timeout=8`;
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
