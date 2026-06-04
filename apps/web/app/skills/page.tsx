@@ -9,7 +9,6 @@ import Pagination from '@/components/ui/Pagination';
 import SearchHistory from '@/components/ui/SearchHistory';
 import GlobalSearchLoadingIndicator from '@/components/ui/GlobalSearchLoadingIndicator';
 import PromoCards from '@/components/ui/PromoCards';
-import DatabaseReconnecting from '@/components/ui/DatabaseReconnecting';
 
 // 强制动态渲染，避免缓存导致的问题
 export const dynamic = 'force-dynamic';
@@ -549,7 +548,21 @@ export default async function PublicSkillsPage({
             {/* Skills 网格 */}
             {skills.length === 0 && globalResults.length === 0 ? (
               databaseError ? (
-                <DatabaseReconnecting />
+                <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50">
+                  <div className="w-20 h-20 mx-auto mb-6 bg-blue-50 rounded-full flex items-center justify-center">
+                    <svg className="w-10 h-10 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">数据库连接中</h3>
+                  <p className="text-gray-600 mb-6">数据库正在唤醒，首次加载可能需要几秒钟</p>
+                  <button
+                    onClick={() => window.location.reload()}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-linear-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-xl hover:shadow-lg transition-all"
+                  >
+                    刷新重试
+                  </button>
+                </div>
               ) : (
               <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50">
                 <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">

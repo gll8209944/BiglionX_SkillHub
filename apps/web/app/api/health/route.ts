@@ -50,29 +50,14 @@ export async function GET() {
     },
   };
 
-  // 检查数据库连接（带重试，支持 Neon 唤醒）
+  // 检查数据库连接
   try {
     const dbStart = Date.now();
-    let dbConnected = false;
-    for (let i = 0; i < 3 && !dbConnected; i++) {
-      try {
-        await prisma.$queryRaw`SELECT 1`;
-        dbConnected = true;
-      } catch {
-        if (i < 2) {
-          // 等待后重试，给 Neon 唤醒时间
-          await new Promise(r => setTimeout(r, 1500));
-        }
-      }
-    }
+    await prisma.$queryRaw`SELECT 1`;
     const dbResponseTime = Date.now() - dbStart;
-    
-    health.checks.database.status = dbConnected ? 'healthy' : 'unhealthy';
+  
+    health.checks.database.status = 'healthy';
     health.checks.database.responseTime = dbResponseTime;
-    if (!dbConnected) {
-      health.checks.database.error = 'Failed to connect after 3 retries';
-      health.status = 'degraded';
-    }
   } catch (error) {
     health.checks.database.status = 'unhealthy';
     health.checks.database.error = error instanceof Error ? error.message : 'Unknown error';

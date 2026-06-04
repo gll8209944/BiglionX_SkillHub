@@ -4,13 +4,13 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// 优化 Neon 数据库连接参数：
+// Neon 连接优化：
 // - connection_limit=1: Neon 免费套餐限制为 1
-// - pool_timeout=3: 连接池等待超时 3 秒（防止 Vercel 函数超时）
-// - connect_timeout=3: TCP 连接超时 3 秒
+// - pool_timeout=10: 连接池等待超时 10 秒（给 Neon 足够唤醒时间）
+// 注意：不设置 connect_timeout，让 Prisma 等待 Neon 自然唤醒（通常 1-5 秒）
 const baseUrl = process.env.DATABASE_URL || '';
 const timeoutParams = baseUrl.includes('?') ? '&' : '?';
-const optimizedUrl = `${baseUrl}${timeoutParams}connection_limit=1&pool_timeout=3&connect_timeout=3`;
+const optimizedUrl = `${baseUrl}${timeoutParams}connection_limit=1&pool_timeout=10`;
 
 export const prisma = globalForPrisma.prisma ?? new PrismaClient({
   log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
