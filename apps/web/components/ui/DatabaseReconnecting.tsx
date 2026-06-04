@@ -2,13 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 
-export default function DatabaseReconnecting({ onRetry }: { onRetry?: () => void }) {
-  const [countdown, setCountdown] = useState(5);
-  const [progress, setProgress] = useState(0);
-  const [finished, setFinished] = useState(false);
+export default function DatabaseReconnecting({ onRetry, skipTimer }: { onRetry?: () => void; skipTimer?: boolean }) {
+  const [countdown, setCountdown] = useState(skipTimer ? 0 : 5);
+  const [progress, setProgress] = useState(skipTimer ? 100 : 0);
+  const [finished, setFinished] = useState(skipTimer ? true : false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
+    if (skipTimer) return;
+
     const totalMs = 5000;
     const intervalMs = 50;
     const steps = totalMs / intervalMs;
@@ -30,7 +32,7 @@ export default function DatabaseReconnecting({ onRetry }: { onRetry?: () => void
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, []);
+  }, [skipTimer]);
 
   const handleRetry = () => {
     if (onRetry) {
