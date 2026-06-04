@@ -9,6 +9,7 @@ import Pagination from '@/components/ui/Pagination';
 import SearchHistory from '@/components/ui/SearchHistory';
 import GlobalSearchLoadingIndicator from '@/components/ui/GlobalSearchLoadingIndicator';
 import PromoCards from '@/components/ui/PromoCards';
+import DatabaseReconnecting from '@/components/ui/DatabaseReconnecting';
 
 // 强制动态渲染，避免缓存导致的问题
 export const dynamic = 'force-dynamic';
@@ -100,6 +101,7 @@ export default async function PublicSkillsPage({
   let total = 0;
   let globalResults: SkillWithRelations[] = [];
   let searchMode: 'local' | 'mixed' = 'local';
+  let databaseError = false;
 
   if (useGlobalSearch && query) {
     // 使用全局搜索API（本地+全网）
@@ -271,6 +273,7 @@ export default async function PublicSkillsPage({
       console.error('Database query failed in useTraditionalSearch:', error);
       skills = [];
       total = 0;
+      databaseError = true;
     }
   }
 
@@ -289,6 +292,7 @@ export default async function PublicSkillsPage({
     });
   } catch (error) {
     console.error('Failed to load category stats:', error);
+    databaseError = true;
     // 使用空数组，页面仍可正常渲染
   }
 
@@ -544,6 +548,9 @@ export default async function PublicSkillsPage({
 
             {/* Skills 网格 */}
             {skills.length === 0 && globalResults.length === 0 ? (
+              databaseError ? (
+                <DatabaseReconnecting />
+              ) : (
               <div className="text-center py-20 bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg shadow-gray-200/50">
                 <div className="w-20 h-20 mx-auto mb-6 bg-linear-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center">
                   <svg className="w-10 h-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -562,6 +569,7 @@ export default async function PublicSkillsPage({
                   返回首页
                 </Link>
               </div>
+              )
             ) : (
               <>
                 {/* 本地搜索结果 */}
