@@ -4,35 +4,9 @@ import './globals.css';
 import { ReactQueryProvider } from '@/components/providers/ReactQueryProvider';
 import { ToastProvider } from '@/components/ui/ToastContainer';
 import { SessionProvider } from '@/components/providers/SessionProvider';
-import { startScheduler } from '@/lib/services/TaskScheduler';
 import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
-
-// Start scheduler on server-side (only once)
-let schedulerStarted = false;
-if (typeof window === 'undefined' && !schedulerStarted) {
-  // Use setTimeout to defer execution and avoid blocking layout rendering
-  setTimeout(() => {
-    console.log('\n🚀 ========================================');
-    console.log('🚀 Starting SkillHub Task Scheduler from Layout...');
-    console.log('🚀 ========================================\n');
-    
-    console.log('Environment Check:');
-    console.log(`  GITHUB_TOKEN: ${process.env.GITHUB_TOKEN ? '✅ Configured' : '❌ Missing'}`);
-    console.log(`  SKILLSMP_API_KEY: ${process.env.SKILLSMP_API_KEY ? '✅ Configured' : '❌ Missing'}`);
-    console.log(`  DATABASE_URL: ${process.env.DATABASE_URL ? '✅ Configured' : '❌ Missing'}`);
-    console.log('');
-    
-    startScheduler().then(() => {
-      console.log('\n✅ Task Scheduler initialized successfully from Layout\n');
-    }).catch((error) => {
-      console.error('\n⚠️  Task Scheduler initialization failed (non-critical):', error instanceof Error ? error.message : error);
-      console.error('This will not affect page rendering. The scheduler can be retried later.\n');
-    });
-  }, 0);
-  schedulerStarted = true;
-}
 
 export const metadata: Metadata = {
   title: 'Skill Hub - AI Agent Skills Registry',

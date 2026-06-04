@@ -37,7 +37,6 @@
         "@skillhub/search-sdk": "*",
         "@skillhub/widget": "*",
         "@tanstack/react-query": "^5.99.0",
-        "@types/bcryptjs": "^3.0.0",
         "@types/nodemailer": "^8.0.0",
         "@upstash/redis": "^1.37.0",
         "axios": "^1.15.0",
