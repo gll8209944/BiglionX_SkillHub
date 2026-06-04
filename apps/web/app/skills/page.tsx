@@ -69,7 +69,13 @@ export default async function PublicSkillsPage({
   searchParams: SearchParams;
 }) {
   // 获取用户登录状态
-  const session = await auth();
+  let session = null;
+  try {
+    session = await auth();
+  } catch (error) {
+    console.error('Failed to get session:', error);
+    // 不阻塞页面渲染，未登录也能浏览
+  }
   
   const query = searchParams.q;
   const category = searchParams.category;
@@ -148,7 +154,8 @@ export default async function PublicSkillsPage({
 
   // 传统搜索函数
   async function useTraditionalSearch() {
-    // Build query conditions for new search API
+    try {
+      // Build query conditions for new search API
     const where: Record<string, unknown> = {
       status: 'APPROVED',
       isPublic: true,
@@ -259,18 +266,31 @@ export default async function PublicSkillsPage({
           },
         },
       },
-    }) as SkillWithRelations[];
+      }) as SkillWithRelations[];
+    } catch (error) {
+      console.error('Database query failed in useTraditionalSearch:', error);
+      skills = [];
+      total = 0;
+    }
   }
 
   // Get dynamic categories from database
-  const categoryStats = await prisma.skill.groupBy({
-    by: ['category'],
-    _count: true,
-    where: {
-      status: 'APPROVED',
-      isPublic: true,
-    },
-  });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let categoryStats: any[] = [];
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    categoryStats = await (prisma.skill.groupBy as any)({
+      by: ['category'],
+      _count: true,
+      where: {
+        status: 'APPROVED',
+        isPublic: true,
+      },
+    });
+  } catch (error) {
+    console.error('Failed to load category stats:', error);
+    // 使用空数组，页面仍可正常渲染
+  }
 
   // Category mapping for display names
   const categoryNames: Record<string, string> = {
