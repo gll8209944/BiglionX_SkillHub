@@ -24,8 +24,8 @@ export async function GET() {
   await setCodeVerifierCookie(codeVerifier);
   await setOAuthStateCookie(state);
 
-  // 4. 构建 authorize URL 并重定向
-  const authorizationUrl = getAuthorizationUrl(state, codeChallenge);
+  // 4. 构建 authorize URL 并重定向（端点从 discovery 异步获取）
+  const authorizationUrl = await getAuthorizationUrl(state, codeChallenge);
 
   redirect(authorizationUrl);
 }

@@ -32,6 +32,7 @@ jest.mock('@/lib/prisma', () => ({
   prisma: {
     user: {
       upsert: jest.fn(),
+      update: jest.fn(),
     },
   },
 }));
@@ -72,7 +73,7 @@ const mockOidcSession = jest.requireMock('@/lib/oidc-session') as {
   clearSession: jest.Mock;
 };
 const mockPrisma = jest.requireMock('@/lib/prisma') as {
-  prisma: { user: { upsert: jest.Mock } };
+  prisma: { user: { upsert: jest.Mock; update: jest.Mock } };
 };
 
 describe('auth callback handler', () => {
@@ -85,6 +86,7 @@ describe('auth callback handler', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
     mockPrisma.prisma.user.upsert.mockResolvedValue({ id: 'user_001', email: 'user@example.com' });
+    mockPrisma.prisma.user.update.mockResolvedValue({ id: 'user_001', email: 'user@example.com' });
     handler = await import('@/app/auth/callback/route');
   });
 
@@ -116,11 +118,68 @@ describe('auth callback handler', () => {
     expect(response.status).toBe(302);
     expect(response.url).toContain('/dashboard');
     expect(mockOidcSession.createSession).toHaveBeenCalled();
+    // userinfo 不含 is_admin → role 写为 USER（默认权限）
     expect(mockPrisma.prisma.user.upsert).toHaveBeenCalledWith({
       where: { email: 'user@example.com' },
-      update: { name: 'Test User', image: undefined },
-      create: { email: 'user@example.com', name: 'Test User', image: null },
+      update: { name: 'Test User', image: undefined, role: 'USER' },
+      create: { email: 'user@example.com', name: 'Test User', image: null, role: 'USER' },
     });
+  });
+
+  test('userinfo.is_admin=true 应同步 Prisma User.role=ADMIN', async () => {
+    mockOidcSession.getOAuthState.mockResolvedValueOnce('test_state');
+    mockOidcSession.getCodeVerifier.mockResolvedValueOnce('test_verifier');
+    mockOidcRp.exchangeCodeForToken.mockResolvedValueOnce({
+      access_token: 'admin_token',
+      refresh_token: 'admin_refresh',
+      token_type: 'Bearer',
+      expires_in: 3600,
+    });
+    mockOidcRp.getUserInfo.mockResolvedValueOnce({
+      sub: 'admin_001',
+      email: 'admin@example.com',
+      name: 'Admin User',
+      is_admin: true,
+    });
+
+    const req = mockRequest({ code: 'admin_code', state: 'test_state' });
+    const response = await handler.GET(req);
+
+    expect(response.status).toBe(302);
+    expect(mockPrisma.prisma.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { email: 'admin@example.com' },
+        update: expect.objectContaining({ role: 'ADMIN' }),
+        create: expect.objectContaining({ role: 'ADMIN' }),
+      }),
+    );
+  });
+
+  test('userinfo.is_admin=false 应降权 Prisma User.role=USER', async () => {
+    mockOidcSession.getOAuthState.mockResolvedValueOnce('test_state');
+    mockOidcSession.getCodeVerifier.mockResolvedValueOnce('test_verifier');
+    mockOidcRp.exchangeCodeForToken.mockResolvedValueOnce({
+      access_token: 't',
+      refresh_token: 'r',
+      token_type: 'Bearer',
+      expires_in: 3600,
+    });
+    mockOidcRp.getUserInfo.mockResolvedValueOnce({
+      sub: 'user_002',
+      email: 'demoted@example.com',
+      name: 'Demoted User',
+      is_admin: false, // 明示 false（不是 undefined）
+    });
+
+    const req = mockRequest({ code: 'c', state: 'test_state' });
+    await handler.GET(req);
+
+    expect(mockPrisma.prisma.user.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: expect.objectContaining({ role: 'USER' }),
+        create: expect.objectContaining({ role: 'USER' }),
+      }),
+    );
   });
 
   test('state 不匹配应重定向到错误页', async () => {

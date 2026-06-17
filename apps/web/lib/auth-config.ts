@@ -52,6 +52,7 @@ export async function auth(): Promise<Session | null> {
           name: userData.name,
           email: userData.email,
           image: null,
+          is_admin: userData.is_admin ?? false,
         },
         expires: new Date(Date.now() + 3600 * 1000).toISOString(), // 1h 估算
       };

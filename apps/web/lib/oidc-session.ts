@@ -26,11 +26,33 @@ export const COOKIE_NAMES = {
 // Session 有效期（7 天，与 IdP 一致）
 const SESSION_MAX_AGE = 7 * 24 * 60 * 60;
 
+/**
+ * 从 env 读取 sameSite 配置（生产环境 SSO 跨域需要 none）
+ * 默认 dev=lax，生产需显式设置 SESSION_COOKIE_SAMESITE=none
+ */
+function resolveSameSite(): 'lax' | 'strict' | 'none' {
+  const raw = (process.env.SESSION_COOKIE_SAMESITE || '').toLowerCase();
+  if (raw === 'none' || raw === 'strict' || raw === 'lax') {
+    return raw as 'lax' | 'strict' | 'none';
+  }
+  return 'lax';
+}
+
+/**
+ * 从 env 读取 secure 配置
+ * 生产默认 true，dev 默认 false（除非显式开启）
+ */
+function resolveSecure(): boolean {
+  if (process.env.SESSION_COOKIE_SECURE === 'true') return true;
+  if (process.env.SESSION_COOKIE_SECURE === 'false') return false;
+  return process.env.NODE_ENV === 'production';
+}
+
 // Cookie 基础选项
 const BASE_COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'lax' as const,
+  secure: resolveSecure(),
+  sameSite: resolveSameSite(),
   path: '/',
 };
 
@@ -166,8 +188,13 @@ export async function getOAuthState(): Promise<string | undefined> {
 
 /**
  * 读取客户端可读的 user cookie
+ *
+ * 注意：is_admin 可能为空（cookie 未携带该字段），调用方应
+ * 把它当作不权威（权威来源是 Prisma User.role）。
  */
-export async function getSessionUser(): Promise<{ id: string; name: string; email: string } | null> {
+export async function getSessionUser(): Promise<
+  { id: string; name: string; email: string; is_admin?: boolean } | null
+> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(COOKIE_NAMES.USER)?.value;
   if (!raw) return null;
@@ -257,9 +284,11 @@ function extractDomain(): string | undefined {
 
 /**
  * 从 id_token 中提取基本用户信息（用于 skillhub_user cookie）
- * 如果 id_token 不存在，返回 null
+ * 包含 is_admin 供前端判断（仅供 UI 展示，权威判断看 Prisma User.role）
  */
-function extractUserFromToken(tokens: TokenResponse): { id: string; name: string; email: string } | null {
+function extractUserFromToken(
+  tokens: TokenResponse,
+): { id: string; name: string; email: string; is_admin: boolean } | null {
   if (!tokens.id_token) return null;
   try {
     // id_token 是 JWT：header.payload.signature
@@ -274,6 +303,7 @@ function extractUserFromToken(tokens: TokenResponse): { id: string; name: string
       id: payload.sub || '',
       name: payload.name || '',
       email: payload.email || '',
+      is_admin: Boolean(payload.is_admin),
     };
   } catch {
     return null;

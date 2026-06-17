@@ -1,23 +1,25 @@
 /**
- * NvwaX OIDC RP 客户端
- * 
- * 封装与 account.proclaw.cc 的全部 OIDC 通信：
- * - PKCE (S256) 生成
- * - Authorization Code 流程
- * - Token 换取/续期/撤销
- * - UserInfo 查询
- * - RS256 JWT 验证（JWKS）
- * 
- * 对接端点（Sprint 1 冻结契约）：
- * - /oauth/authorize
- * - /oauth/token
- * - /oauth/userinfo
- * - /oauth/logout
- * - /.well-known/jwks.json
+ * NvwaX OIDC RP 客户端（Public Client 改造版）
+ *
+ * 封装与 NvwaX OIDC IdP 的全部通信。
+ * 所有端点不再硬编码，全部从 oidc-discovery 动态获取。
+ *
+ * ⚠️ Public Client 契约（NvwaX Sprint 1 冻结）：
+ * - client_id = 'skillhub-web'（env 可覆盖以兼容 dev/staging）
+ * - token_endpoint_auth_method = 'none'（禁止传 client_secret）
+ * - PKCE S256 强制
+ *
+ * 对接端点（全部从 discovery 拉取）：
+ * - {issuer}/oauth/authorize
+ * - {issuer}/oauth/token
+ * - {issuer}/oauth/userinfo
+ * - {issuer}/oauth/logout
+ * - {issuer}/.well-known/jwks.json
  */
 
 import { jwtVerify, createRemoteJWKSet, base64url } from 'jose';
 import type { JWTPayload } from 'jose';
+import { getDiscovery, resetDiscoveryCache } from './oidc-discovery';
 
 // ============================================================
 // 类型定义
@@ -30,6 +32,7 @@ export interface TokenResponse {
   id_token?: string;
   token_type: string;
   expires_in: number;
+  scope?: string;
 }
 
 /** UserInfo 端点响应 */
@@ -38,6 +41,7 @@ export interface UserInfoResponse {
   email?: string;
   name?: string;
   picture?: string;
+  is_admin?: boolean;
   [key: string]: unknown;
 }
 
@@ -79,23 +83,23 @@ export class OidcError extends Error {
 }
 
 // ============================================================
-// 配置
+// 客户端配置（静态常量，运行时端点全部从 discovery 获取）
 // ============================================================
 
+/** 契约默认 client_id（NvwaX 分配） */
+export const DEFAULT_CLIENT_ID = 'skillhub-web';
+
 export const OIDC_CONFIG = {
-  issuer: 'https://account.proclaw.cc',
-  authorizationEndpoint: 'https://account.proclaw.cc/oauth/authorize',
-  tokenEndpoint: 'https://account.proclaw.cc/oauth/token',
-  userinfoEndpoint: 'https://account.proclaw.cc/oauth/userinfo',
-  logoutEndpoint: 'https://account.proclaw.cc/oauth/logout',
-  jwksUri: 'https://account.proclaw.cc/.well-known/jwks.json',
-  get clientId() {
-    return process.env.SKILLHUB_OIDC_CLIENT_ID || '';
+  /** 公共 clientId，硬编码默认 'skillhub-web'，env 可覆盖 */
+  get clientId(): string {
+    return process.env.SKILLHUB_OIDC_CLIENT_ID || DEFAULT_CLIENT_ID;
   },
-  get clientSecret() {
-    return process.env.SKILLHUB_OIDC_CLIENT_SECRET || '';
-  },
-  get redirectUri() {
+  /**
+   * redirect_uri 必须与 NvwaX 端注册一致
+   * 默认生产：https://skillhub.proclaw.cc/auth/callback
+   * dev 环境：NEXT_PUBLIC_APP_URL=http://localhost:3000 时为 http://localhost:3000/auth/callback
+   */
+  get redirectUri(): string {
     return `${process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc'}/auth/callback`;
   },
 } as const;
@@ -106,17 +110,15 @@ export const OIDC_CONFIG = {
 
 /**
  * 生成 PKCE S256 code_verifier 和 code_challenge
- * 
- * code_verifier: 43-128 个字符的随机字符串（[A-Za-z0-9-._~]）
- * code_challenge: 对 verifier 做 SHA-256 后 base64url 编码
+ *
+ * code_verifier: 64 字节随机数 → base64url，约 86 字符（合规 RFC 7636 §4.1）
+ * code_challenge: SHA-256(verifier) → base64url = 43 字符，无 padding
  */
 export async function generatePKCE(): Promise<PKCEPair> {
-  // 生成 64 字节随机数（约 86 base64url 字符，符合 43-128 要求）
   const randomBytes = new Uint8Array(64);
   crypto.getRandomValues(randomBytes);
   const codeVerifier = base64url.encode(randomBytes);
 
-  // SHA-256 编码
   const encoder = new TextEncoder();
   const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(codeVerifier));
   const codeChallenge = base64url.encode(new Uint8Array(hashBuffer));
@@ -129,18 +131,19 @@ export async function generatePKCE(): Promise<PKCEPair> {
 // ============================================================
 
 /**
- * 生成 OIDC authorize URL
- * 
+ * 生成 OIDC authorize URL（动态从 discovery 拉取端点）
+ *
  * @param state CSRF state（应存入 cookie 用于回调验证）
  * @param codeChallenge PKCE code_challenge
  * @param scope OAuth scope，默认为 openid profile email
  * @returns 完整的 authorize URL
  */
-export function getAuthorizationUrl(
+export async function getAuthorizationUrl(
   state: string,
   codeChallenge: string,
   scope = 'openid profile email',
-): string {
+): Promise<string> {
+  const discovery = await getDiscovery();
   const params = new URLSearchParams({
     response_type: 'code',
     client_id: OIDC_CONFIG.clientId,
@@ -151,16 +154,22 @@ export function getAuthorizationUrl(
     state,
   });
 
-  return `${OIDC_CONFIG.authorizationEndpoint}?${params.toString()}`;
+  return `${discovery.authorizationEndpoint}?${params.toString()}`;
 }
 
 // ============================================================
-// Token Operations
+// Token Operations（Public Client：禁止传 client_secret）
 // ============================================================
 
-/** 标准 Token 端点请求 */
+/**
+ * 标准 Token 端点请求
+ *
+ * Public Client：不在 body 中传 client_secret、不使用 Basic Auth，
+ * 完全依赖 PKCE code_verifier 证明 client 身份。
+ */
 async function tokenRequest(body: URLSearchParams): Promise<TokenResponse> {
-  const response = await fetch(OIDC_CONFIG.tokenEndpoint, {
+  const discovery = await getDiscovery();
+  const response = await fetch(discovery.tokenEndpoint, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
@@ -169,7 +178,7 @@ async function tokenRequest(body: URLSearchParams): Promise<TokenResponse> {
     body: body.toString(),
   });
 
-  const data = await response.json();
+  const data = await response.json().catch(() => ({}));
 
   if (!response.ok) {
     const errorCode = (data.error || 'server_error') as OidcErrorCode;
@@ -181,11 +190,10 @@ async function tokenRequest(body: URLSearchParams): Promise<TokenResponse> {
 }
 
 /**
- * 用 authorization_code 换取 token
- * 
- * @param code 授权码（从 callback query 获取）
- * @param codeVerifier PKCE code_verifier（从 cookie 获取）
- * @returns TokenResponse
+ * 用 authorization_code 换取 token（PKCE 模式，public client）
+ *
+ * body 中包含：grant_type, code, redirect_uri, client_id, code_verifier
+ * body 中**不包含** client_secret（这是 public client 与 confidential client 的根本区别）
  */
 export async function exchangeCodeForToken(
   code: string,
@@ -196,7 +204,6 @@ export async function exchangeCodeForToken(
     code,
     redirect_uri: OIDC_CONFIG.redirectUri,
     client_id: OIDC_CONFIG.clientId,
-    client_secret: OIDC_CONFIG.clientSecret,
     code_verifier: codeVerifier,
   });
 
@@ -204,17 +211,16 @@ export async function exchangeCodeForToken(
 }
 
 /**
- * 用 refresh_token 换取新的 access_token
- * 
- * @param refreshToken refresh_token
- * @returns TokenResponse
+ * 用 refresh_token 换取新的 access_token（链式轮换）
+ *
+ * NvwaX 行为：每次 refresh 后旧 refresh_token 立即作废，
+ * 必须用响应中返回的新 refresh_token。
  */
 export async function refreshAccessToken(refreshToken: string): Promise<TokenResponse> {
   const body = new URLSearchParams({
     grant_type: 'refresh_token',
     refresh_token: refreshToken,
     client_id: OIDC_CONFIG.clientId,
-    client_secret: OIDC_CONFIG.clientSecret,
   });
 
   return tokenRequest(body);
@@ -226,12 +232,13 @@ export async function refreshAccessToken(refreshToken: string): Promise<TokenRes
 
 /**
  * 用 access_token 获取用户信息
- * 
- * @param accessToken access_token
- * @returns UserInfoResponse
+ *
+ * 返回的 UserInfoResponse 可能包含 NvwaX 扩展 claim（如 is_admin）。
+ * 优先使用 userinfo 而非 id_token claims（更稳定，便于撤销扩展 claim）。
  */
 export async function getUserInfo(accessToken: string): Promise<UserInfoResponse> {
-  const response = await fetch(OIDC_CONFIG.userinfoEndpoint, {
+  const discovery = await getDiscovery();
+  const response = await fetch(discovery.userinfoEndpoint, {
     method: 'GET',
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -245,40 +252,40 @@ export async function getUserInfo(accessToken: string): Promise<UserInfoResponse
     throw new OidcError(errorCode, data.error_description || 'Failed to fetch userinfo', response.status);
   }
 
-  return response.json() as Promise<UserInfoResponse>;
+  return (await response.json()) as UserInfoResponse;
 }
 
 // ============================================================
-// Logout
+// Logout（Public Client：JSON body，不传 client_secret）
 // ============================================================
 
 /**
  * 在 IdP 端撤销 refresh_token
- * 
- * @param refreshToken 要撤销的 refresh_token
+ *
+ * Public Client 使用 JSON body：{ "refresh_token": "..." }
+ * 不再附加 client_id / client_secret（IdP 端根据 refresh_token 自身识别）。
  */
 export async function logout(refreshToken: string): Promise<void> {
   try {
-    const response = await fetch(OIDC_CONFIG.logoutEndpoint, {
+    const discovery = await getDiscovery();
+    const response = await fetch(discovery.logoutEndpoint, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/json',
         Accept: 'application/json',
       },
-      body: new URLSearchParams({
-        client_id: OIDC_CONFIG.clientId,
-        client_secret: OIDC_CONFIG.clientSecret,
-        refresh_token: refreshToken,
-      }).toString(),
+      body: JSON.stringify({ refresh_token: refreshToken }),
     });
 
     if (!response.ok) {
       const data = await response.json().catch(() => ({}));
       const code = (data.error || 'server_error') as OidcErrorCode;
+      // eslint-disable-next-line no-console
       console.warn(`[OIDC] Logout warning: ${code}`, data.error_description);
     }
   } catch (err) {
     // 登出是尽力而为的操作，不抛出错误
+    // eslint-disable-next-line no-console
     console.warn('[OIDC] Logout network error (non-fatal):', err);
   }
 }
@@ -287,20 +294,20 @@ export async function logout(refreshToken: string): Promise<void> {
 // JWT Verification
 // ============================================================
 
-/** JWKS 客户端缓存 */
+/** JWKS 客户端缓存（基于 discovery jwks_uri） */
 let jwksClient: ReturnType<typeof createRemoteJWKSet> | null = null;
-/** JWKS 缓存时间戳 */
 let jwksCacheTimestamp = 0;
-/** JWKS 缓存 TTL（1 小时） */
+/** JWKS 缓存 TTL：1 小时（与 discovery 一致） */
 const JWKS_CACHE_TTL = 60 * 60 * 1000;
 
 /**
  * 获取或创建缓存的 JWKS 客户端
  */
-function getJwksClient() {
+async function getJwksClient() {
   const now = Date.now();
   if (!jwksClient || now - jwksCacheTimestamp > JWKS_CACHE_TTL) {
-    jwksClient = createRemoteJWKSet(new URL(OIDC_CONFIG.jwksUri));
+    const discovery = await getDiscovery();
+    jwksClient = createRemoteJWKSet(new URL(discovery.jwksUri));
     jwksCacheTimestamp = now;
   }
   return jwksClient;
@@ -315,17 +322,27 @@ export function resetJwksCache(): void {
 }
 
 /**
+ * 同时重置 JWKS + Discovery 缓存（测试便捷方法）
+ */
+export function resetAllCaches(): void {
+  resetJwksCache();
+  resetDiscoveryCache();
+}
+
+/**
  * 验证 access_token 的 RS256 签名并解码 claims
- * 
+ *
  * @param accessToken access_token（JWT）
  * @returns 解码后的 token claims
  * @throws OidcError 如果 token 无效或签名验证失败
  */
 export async function verifyAccessToken(accessToken: string): Promise<VerifiedToken> {
   try {
-    const client = getJwksClient();
+    const client = await getJwksClient();
+    const discovery = await getDiscovery();
     const { payload } = await jwtVerify(accessToken, client, {
-      issuer: OIDC_CONFIG.issuer,
+      issuer: discovery.issuer,
+      audience: OIDC_CONFIG.clientId,
       algorithms: ['RS256'],
     });
 

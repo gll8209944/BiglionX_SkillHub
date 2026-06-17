@@ -59,17 +59,21 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/auth/login?error=missing_email', request.url));
     }
 
-    // 5. 查/建 Prisma User
+    // 5. 查/建 Prisma User（同步 is_admin → User.role）
+    const isAdmin = Boolean(userInfo.is_admin);
     await prisma.user.upsert({
       where: { email: userInfo.email },
       update: {
         name: userInfo.name || undefined,
         image: userInfo.picture || undefined,
+        // 同步 admin 状态（userinfo 优先；降权时也要写回 USER）
+        role: isAdmin ? 'ADMIN' : 'USER',
       },
       create: {
         email: userInfo.email,
         name: userInfo.name || userInfo.email.split('@')[0],
         image: userInfo.picture || null,
+        role: isAdmin ? 'ADMIN' : 'USER',
       },
     });
 
