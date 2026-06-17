@@ -43,20 +43,16 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
       "env": [
-        "DATABASE_URL",
-        "DIRECT_URL",
-        "NEXTAUTH_URL",
-        "NEXTAUTH_SECRET",
-        "SKILLSMP_API_KEY",
-        "UPSTASH_REDIS_REST_URL",
-        "UPSTASH_REDIS_REST_TOKEN",
-        "OPENAI_API_KEY",
-        "OPENAI_BASE_URL",
-        "ZHIPU_API_KEY",
-        "NODE_ENV",
-        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
-        "CYPRESS_INSTALL_BINARY"
+        "NODE_ENV"
       ]
+    },
+    "@skillhub/search-sdk#lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@skillhub/search-sdk#test": {
+      "dependsOn": ["build"],
+      "outputs": []
     },
     "web#build": {
       "dependsOn": ["^build"],
