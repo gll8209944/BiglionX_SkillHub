@@ -1,6 +1,6 @@
 /**
- * GET /auth/callback
- * 
+ * GET /oauth/callback
+ *
  * OIDC Authorization Code 回调处理：
  * 1. 校验 state（防 CSRF）
  * 2. 读取 code_verifier（从 cookie）
@@ -8,6 +8,10 @@
  * 4. 查/建 Prisma User
  * 5. 设置 session cookie
  * 6. 302 到原访问页或 /dashboard
+ *
+ * ⚠️ 路径必须为 /oauth/callback：与 NvwaX OIDC IdP
+ * （account.proclaw.cc）数据库中为 SkillHub 注册的回调路径严格匹配，
+ * 否则 IdP 会拒绝 redirect_uri 校验并报 invalid_request。
  */
 
 import { NextRequest, NextResponse } from 'next/server';

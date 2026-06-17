@@ -77,7 +77,7 @@ const mockPrisma = jest.requireMock('@/lib/prisma') as {
 };
 
 describe('auth callback handler', () => {
-  let handler: typeof import('@/app/auth/callback/route');
+  let handler: typeof import('@/app/oauth/callback/route');
 
   beforeAll(async () => {
     process.env.SKILLHUB_OIDC_CLIENT_ID = 'test_client_id';
@@ -87,12 +87,12 @@ describe('auth callback handler', () => {
     jest.clearAllMocks();
     mockPrisma.prisma.user.upsert.mockResolvedValue({ id: 'user_001', email: 'user@example.com' });
     mockPrisma.prisma.user.update.mockResolvedValue({ id: 'user_001', email: 'user@example.com' });
-    handler = await import('@/app/auth/callback/route');
+    handler = await import('@/app/oauth/callback/route');
   });
 
   // Helper to create mock request
   function mockRequest(searchParams: Record<string, string>): NextRequest {
-    const url = new URL('https://skillhub.proclaw.cc/auth/callback');
+    const url = new URL('https://skillhub.proclaw.cc/oauth/callback');
     Object.entries(searchParams).forEach(([k, v]) => url.searchParams.set(k, v));
     return { url: url.toString(), nextUrl: url } as unknown as NextRequest;
   }

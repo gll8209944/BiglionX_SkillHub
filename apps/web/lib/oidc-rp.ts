@@ -96,11 +96,11 @@ export const OIDC_CONFIG = {
   },
   /**
    * redirect_uri 必须与 NvwaX 端注册一致
-   * 默认生产：https://skillhub.proclaw.cc/auth/callback
-   * dev 环境：NEXT_PUBLIC_APP_URL=http://localhost:3000 时为 http://localhost:3000/auth/callback
+   * 默认生产：https://skillhub.proclaw.cc/oauth/callback
+   * dev 环境：NEXT_PUBLIC_APP_URL=http://localhost:3000 时为 http://localhost:3000/oauth/callback
    */
   get redirectUri(): string {
-    return `${process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc'}/auth/callback`;
+    return `${process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc'}/oauth/callback`;
   },
 } as const;
 

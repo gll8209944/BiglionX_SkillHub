@@ -139,7 +139,7 @@ describe('oidc-rp（Public Client）', () => {
       const parsed = new URL(url);
       expect(parsed.searchParams.get('response_type')).toBe('code');
       expect(parsed.searchParams.get('client_id')).toBe('test_client_id');
-      expect(parsed.searchParams.get('redirect_uri')).toBe('https://skillhub.proclaw.cc/auth/callback');
+      expect(parsed.searchParams.get('redirect_uri')).toBe('https://skillhub.proclaw.cc/oauth/callback');
       expect(parsed.searchParams.get('code_challenge')).toBe('test_challenge');
       expect(parsed.searchParams.get('code_challenge_method')).toBe('S256');
       expect(parsed.searchParams.get('state')).toBe('test_state');
