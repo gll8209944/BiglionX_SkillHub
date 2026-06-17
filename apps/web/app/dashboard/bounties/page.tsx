@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 

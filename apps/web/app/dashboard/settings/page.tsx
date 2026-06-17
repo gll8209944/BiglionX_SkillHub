@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { Upload, Save, User } from 'lucide-react';

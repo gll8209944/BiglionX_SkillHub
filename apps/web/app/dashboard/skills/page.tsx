@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { Search, Package, Download, Calendar, Grid, List, CheckSquare, Square } from 'lucide-react';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import { BatchActionBar } from '@/components/ui/BatchActionBar';
 import { useToast } from '@/components/ui/Toast';
 

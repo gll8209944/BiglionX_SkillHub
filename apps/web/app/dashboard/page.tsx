@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Package, Download, DollarSign, RefreshCw, Bot, Globe, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import { StatCard, StatsGrid } from '@/components/ui/StatCard';
 import { TimeRangeSelector, type TimeRange } from '@/components/ui/TimeRangeSelector';
 

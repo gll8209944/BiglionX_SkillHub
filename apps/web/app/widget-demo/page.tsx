@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import { SkillStoreWidget, SkillSearchWidget, MySkillsManager } from '@skillhub/widget';
 import type { SkillSearchResult } from '@skillhub/search-sdk';
 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import Link from 'next/link';
 import { TrendingUp, Download, Users, Star, Calendar } from 'lucide-react';
 import {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSession } from 'next-auth/react';
+import { useSession } from '@/components/providers/SessionProvider';
 import Link from 'next/link';
 import EnhancedSearchBox from '@/components/ui/EnhancedSearchBox';
 import SkillCard from '@/components/ui/SkillCard';
