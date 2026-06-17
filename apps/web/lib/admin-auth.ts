@@ -1,3 +1,10 @@
+/**
+ * 管理员认证工具
+ * 
+ * 注意：从 NextAuth 迁移到 NvwaX OIDC 后，管理员权限通过 access_token 中的
+ * is_admin claim 判断（由 IdP 注入，参 NvwaX Sprint 2.4-A）。
+ */
+
 import { auth } from '@/lib/auth-config';
 import { redirect } from 'next/navigation';
 
@@ -14,14 +21,8 @@ export async function requireAdmin() {
     redirect('/login');
   }
 
-  // 检查是否为管理员
-  // 注意：需要先在数据库中为用户设置 role 字段
-  // 临时方案：检查邮箱是否在管理员列表中
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  const isAdmin = adminEmails.includes(session.user.email || '');
-
-  if (!isAdmin) {
-    // 如果不是管理员，重定向到首页
+  // 检查 is_admin claim
+  if (!session.user.is_admin) {
     redirect('/dashboard');
   }
 
@@ -34,19 +35,12 @@ export async function requireAdmin() {
  */
 export async function checkAdminPermission(): Promise<boolean> {
   const session = await auth();
-
-  if (!session?.user) {
-    return false;
-  }
-
-  // 检查邮箱是否在管理员列表中
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  return adminEmails.includes(session.user.email || '');
+  return !!session?.user?.is_admin;
 }
 
 /**
  * 获取当前用户的角色
- * @returns 用户角色
+ * @returns 'ADMIN' | 'USER' | null
  */
 export async function getUserRole(): Promise<string | null> {
   const session = await auth();
@@ -55,12 +49,5 @@ export async function getUserRole(): Promise<string | null> {
     return null;
   }
 
-  // TODO: 从数据库获取用户角色
-  // 目前使用邮箱列表作为临时方案
-  const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-  if (adminEmails.includes(session.user.email || '')) {
-    return 'ADMIN';
-  }
-
-  return 'USER';
+  return session.user.is_admin ? 'ADMIN' : 'USER';
 }

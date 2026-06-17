@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { verifyAccessToken } from '@/lib/oidc-rp';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -21,8 +21,6 @@ export async function middleware(request: NextRequest) {
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
   // 内容安全策略 (CSP)
-  // 注意：根据实际需求调整 CSP 策略
-  // 开发环境允许 localhost 的所有端口，生产环境限制更严格
   const isDev = process.env.NODE_ENV === 'development';
   const connectSrc = isDev 
     ? "connect-src 'self' http://localhost:* ws://localhost:* https://*.googleapis.com; "
@@ -67,16 +65,19 @@ export async function middleware(request: NextRequest) {
   );
 
   if (isProtectedPath) {
-    // 使用 getToken 代替 auth()，因为 middleware 运行在 Edge Runtime
-    // getToken 只验证 JWT token，不需要访问数据库
-    const token = await getToken({ 
-      req: request,
-      secret: process.env.NEXTAUTH_SECRET,
-    });
+    const accessToken = request.cookies.get('skillhub_access_token')?.value;
     
-    if (!token) {
+    if (!accessToken) {
       return NextResponse.redirect(
-        new URL('/login', process.env.NEXTAUTH_URL || 'http://localhost:3000')
+        new URL('/auth/login', request.url)
+      );
+    }
+
+    try {
+      await verifyAccessToken(accessToken);
+    } catch {
+      return NextResponse.redirect(
+        new URL('/auth/login', request.url)
       );
     }
   }

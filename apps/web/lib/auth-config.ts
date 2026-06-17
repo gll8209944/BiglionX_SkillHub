@@ -1,169 +1,105 @@
-import NextAuth from 'next-auth';
-import GitHub from 'next-auth/providers/github';
-import Resend from 'next-auth/providers/resend';
-import Credentials from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { prisma } from '@/lib/prisma';
-import bcrypt from 'bcryptjs';
+/**
+ * 认证配置
+ * 
+ * 注意：SkillHub 已从 NextAuth.js 迁移到 NvwaX OIDC IdP。
+ * 此文件提供 auth() 函数，兼容原有调用方签名。
+ * 
+ * 不再支持的导出：
+ * - signIn / signOut（请使用 custom auth 流程）
+ * - handlers（已移除）
+ * 
+ * 保留的导出（接口兼容）：
+ * - auth() — 返回 Session | null
+ */
 
-// NextAuth 配置（用于 server-side 调用）
-const nextAuth = NextAuth({
-  adapter: PrismaAdapter(prisma),
-  providers: [
-    GitHub({
-      clientId: process.env.GITHUB_CLIENT_ID || '',
-      clientSecret: process.env.GITHUB_CLIENT_SECRET || '',
-    }),
-    Resend({
-      apiKey: process.env.RESEND_API_KEY || '',
-      from: process.env.EMAIL_FROM || 'SkillHub <noreply@skillhub.com>',
-    }),
-    Credentials({
-      name: 'Credentials',
-      credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+import { verifyAccessToken, refreshAccessToken } from '@/lib/oidc-rp';
+import { getAccessToken, getRefreshToken, updateSession, getSessionUser } from '@/lib/oidc-session';
+
+export interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+  is_admin?: boolean;
+}
+
+export interface Session {
+  user: SessionUser;
+  expires: string;
+}
+
+/**
+ * 获取当前认证会话
+ * 
+ * 流程：
+ * 1. 从 cookie 读取 access_token
+ * 2. 尝试验证（解码 + RS256 签名校验）
+ * 3. 如果 token 过期，尝试 refresh_token 续期
+ * 4. 返回 Session（兼容原有接口）
+ * 
+ * @returns Session | null
+ */
+export async function auth(): Promise<Session | null> {
+  // 1. 尝试从 cookie 读取 access_token
+  const accessToken = await getAccessToken();
+  if (!accessToken) {
+    // fallback: 从 user cookie 读取（只有基本信息，不全）
+    const userData = await getSessionUser();
+    if (userData) {
+      return {
+        user: {
+          id: userData.id,
+          name: userData.name,
+          email: userData.email,
+          image: null,
+        },
+        expires: new Date(Date.now() + 3600 * 1000).toISOString(), // 1h 估算
+      };
+    }
+    return null;
+  }
+
+  // 2. 尝试验证
+  try {
+    const verified = await verifyAccessToken(accessToken);
+    return {
+      user: {
+        id: verified.sub,
+        name: verified.name || '',
+        email: verified.email || '',
+        image: verified.picture || null,
+        is_admin: verified.is_admin || false,
       },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+      expires: verified.exp ? new Date(verified.exp * 1000).toISOString() : '',
+    };
+  } catch {
+    // Token 无效或过期，尝试 refresh
+  }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email as string },
-          select: {
-            id: true,
-            email: true,
-            name: true,
-            image: true,
-            password: true,
-          },
-        });
+  // 3. token 过期，尝试 refresh
+  const refreshToken = await getRefreshToken();
+  if (!refreshToken) return null;
 
-        if (!user || !user.password) {
-          return null;
-        }
+  try {
+    const tokens = await refreshAccessToken(refreshToken);
 
-        // 验证密码
-        const isValid = await bcrypt.compare(
-          credentials.password as string,
-          user.password
-        );
-        
-        if (!isValid) {
-          return null;
-        }
+    // 更新 cookie 中的 token
+    await updateSession(tokens);
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-        };
+    // 验证新 token 并返回 session
+    const verified = await verifyAccessToken(tokens.access_token);
+    return {
+      user: {
+        id: verified.sub,
+        name: verified.name || '',
+        email: verified.email || '',
+        image: verified.picture || null,
+        is_admin: verified.is_admin || false,
       },
-    }),
-  ],
-  pages: {
-    signIn: '/login',
-    verifyRequest: '/login/verify',
-    error: '/login/error',
-  },
-  session: {
-    strategy: 'jwt',
-  },
-  callbacks: {
-    async signIn({ user, account }) {
-      // 处理 OAuthAccountNotLinked 错误
-      // 如果用户使用 OAuth 登录，且邮箱已存在，自动关联账号
-      if (account?.provider === 'github' && user.email) {
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email },
-        });
-
-        if (existingUser) {
-          // 检查是否已经关联了 GitHub 账号
-          const existingAccount = await prisma.account.findFirst({
-            where: {
-              userId: existingUser.id,
-              provider: 'github',
-            },
-          });
-
-          // 如果没有关联，则自动创建关联
-          if (!existingAccount) {
-            await prisma.account.create({
-              data: {
-                userId: existingUser.id,
-                type: account.type,
-                provider: account.provider,
-                providerAccountId: account.providerAccountId,
-                access_token: account.access_token,
-                expires_at: account.expires_at,
-                token_type: account.token_type,
-                scope: account.scope,
-                id_token: account.id_token,
-                session_state: account.session_state ? String(account.session_state) : null,
-              },
-            });
-          }
-          
-          // 更新用户信息（如果有变化）
-          if (user.name && user.name !== existingUser.name) {
-            await prisma.user.update({
-              where: { id: existingUser.id },
-              data: {
-                name: user.name,
-                image: user.image || existingUser.image,
-              },
-            });
-          }
-        }
-      }
-      
-      return true;
-    },
-    async redirect({ url, baseUrl }) {
-      // 处理登录后的重定向
-      // 如果是相对路径，使用 baseUrl
-      if (url.startsWith('/')) {
-        return `${baseUrl}${url}`;
-      }
-      // 如果是同域名的绝对路径
-      else if (new URL(url).origin === baseUrl) {
-        return url;
-      }
-      // 默认返回 baseUrl
-      return baseUrl;
-    },
-    async jwt({ token, profile, user }) {
-      if (user) {
-        token.id = user.id;
-      }
-      if (profile) {
-        // 确保 id 是字符串类型，处理可能的 JsonValue 类型
-        const profileId = profile.id || profile.sub;
-        if (typeof profileId === 'string') {
-          token.id = profileId;
-        } else if (profileId !== null && profileId !== undefined) {
-          token.id = String(profileId);
-        }
-        token.name = profile.name as string | undefined;
-        token.email = profile.email as string | undefined;
-        const githubProfile = profile as Record<string, unknown>;
-        token.picture = (githubProfile.avatar_url || githubProfile.image) as string | undefined;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session.user && token.id) {
-        session.user.id = token.id as string;
-        session.user.name = token.name as string;
-        session.user.email = token.email as string;
-        session.user.image = token.picture as string | undefined;
-      }
-      return session;
-    },
-  },
-});
-
-export const { auth, signIn, signOut, handlers } = nextAuth;
+      expires: verified.exp ? new Date(verified.exp * 1000).toISOString() : '',
+    };
+  } catch {
+    // Refresh 也失败，session 过期
+    return null;
+  }
+}
