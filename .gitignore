@@ -37,6 +37,7 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+.qoder/
 .DS_Store
 *.suo
 *.ntvs*
