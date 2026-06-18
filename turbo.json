@@ -15,8 +15,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
         "NODE_ENV",
-        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
         "CYPRESS_INSTALL_BINARY"
       ]
     },
@@ -34,8 +35,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
         "NODE_ENV",
-        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
         "CYPRESS_INSTALL_BINARY"
       ]
     },
@@ -43,7 +45,9 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
       "env": [
-        "NODE_ENV"
+        "NODE_ENV",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET"
       ]
     },
     "@skillhub/search-sdk#lint": {
@@ -68,8 +72,9 @@
         "OPENAI_API_KEY",
         "OPENAI_BASE_URL",
         "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
         "NODE_ENV",
-        "PRISMA_GENERATE_SKIP_AUTOINSTALL",
         "CYPRESS_INSTALL_BINARY"
       ]
     },
