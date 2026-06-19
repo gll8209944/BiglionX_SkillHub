@@ -68,5 +68,8 @@ prisma/migrations/
 *.temp
 .cache/
 
+# OIDC discovery cache (written by scripts/debug-401.ps1, regenerated on every run)
+.tmp-discovery.json
+
 # Documentation generated
 docs/generated/
