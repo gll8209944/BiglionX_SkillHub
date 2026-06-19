@@ -47,9 +47,30 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc';
+
   return {
-    title: `${skill.name} - SkillHub`,
+    title: skill.name,
     description: skill.description,
+    openGraph: {
+      title: `${skill.name} - SkillHub`,
+      description: skill.description || '浏览 AI Agent 技能详情',
+      url: `/skills/${skill.slug}`,
+      type: 'article',
+      images: [
+        {
+          url: '/skillhub.png',
+          width: 1200,
+          height: 630,
+          alt: skill.name,
+        },
+      ],
+    },
+    twitter: {
+      title: `${skill.name} - SkillHub`,
+      description: skill.description || '浏览 AI Agent 技能详情',
+      images: ['/skillhub.png'],
+    },
   };
 }
 

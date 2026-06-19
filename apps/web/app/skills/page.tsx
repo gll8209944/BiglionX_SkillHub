@@ -5,8 +5,17 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-  title: 'Skill仓库 - SkillHub',
-  description: '浏览和发现优秀的 AI Agent 技能',
+  title: 'Skill仓库',
+  description: '浏览和发现优秀的 AI Agent 技能，探索企业级开源 AI Agent 技能注册中心',
+  openGraph: {
+    title: 'Skill仓库 - SkillHub',
+    description: '浏览和发现优秀的 AI Agent 技能，探索企业级开源 AI Agent 技能注册中心',
+    url: '/skills',
+  },
+  twitter: {
+    title: 'Skill仓库 - SkillHub',
+    description: '浏览和发现优秀的 AI Agent 技能，探索企业级开源 AI Agent 技能注册中心',
+  },
 };
 
 interface SearchParams {

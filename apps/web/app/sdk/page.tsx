@@ -1,4 +1,5 @@
 import React from 'react';
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { 
   Package, Zap, Code, Globe, Book, ArrowRight, 
@@ -11,6 +12,21 @@ import CodeSnippet from '@/components/ui/CodeSnippet';
  * SDK营销落地页
  * 展示SkillHub Search SDK的价值主张和核心优势
  */
+
+export const metadata: Metadata = {
+  title: 'Search SDK',
+  description: 'SkillHub Search SDK - 为您的应用添加强大的 AI Agent 技能搜索引擎，支持语义搜索、智能推荐和全球技能发现',
+  openGraph: {
+    title: 'SkillHub Search SDK - AI Agent 技能搜索引擎',
+    description: '为您的应用添加强大的 AI Agent 技能搜索引擎，支持语义搜索、智能推荐和全球技能发现',
+    url: '/sdk',
+  },
+  twitter: {
+    title: 'SkillHub Search SDK - AI Agent 技能搜索引擎',
+    description: '为您的应用添加强大的 AI Agent 技能搜索引擎，支持语义搜索、智能推荐和全球技能发现',
+  },
+};
+
 export default function SDKLandingPage() {
   return (
     <div className="min-h-screen bg-white">
