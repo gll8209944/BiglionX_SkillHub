@@ -1,0 +1,88 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "SKILLSMP_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
+        "NODE_ENV",
+        "CYPRESS_INSTALL_BINARY"
+      ]
+    },
+    "@skillhub/cli#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "SKILLSMP_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
+        "NODE_ENV",
+        "CYPRESS_INSTALL_BINARY"
+      ]
+    },
+    "@skillhub/search-sdk#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": [
+        "NODE_ENV",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET"
+      ]
+    },
+    "@skillhub/search-sdk#lint": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "@skillhub/search-sdk#test": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "web#build": {
+      "dependsOn": ["^build"],
+      "outputs": [".next/**", "!.next/cache/**"],
+      "env": [
+        "DATABASE_URL",
+        "DIRECT_URL",
+        "NEXTAUTH_URL",
+        "NEXTAUTH_SECRET",
+        "SKILLSMP_API_KEY",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN",
+        "OPENAI_API_KEY",
+        "OPENAI_BASE_URL",
+        "ZHIPU_API_KEY",
+        "SKILLHUB_OIDC_CLIENT_ID",
+        "SKILLHUB_OIDC_CLIENT_SECRET",
+        "NODE_ENV",
+        "CYPRESS_INSTALL_BINARY"
+      ]
+    },
+    "lint": {},
+    "test": {},
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  }
+}

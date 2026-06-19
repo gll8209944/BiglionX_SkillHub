@@ -1,0 +1,644 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String              @id @default(uuid())
+  email              String              @unique
+  name               String?
+  image              String?
+  emailVerified      DateTime?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  isDisabled         Boolean             @default(false)
+  password           String?
+  resetToken         String?
+  resetTokenExpiry   DateTime?
+  role               UserRole            @default(USER)
+  accounts           Account[]
+  apiKeys            ApiKey[]
+  auditLogs          AuditLog[]
+  bountyApplications BountyApplication[]
+  bountySubmissions  BountySubmission[]
+  namespaces         NamespaceMember[]
+  ownedNamespaces    Namespace[]         @relation("NamespaceOwner")
+  notifications      Notification[]
+  reviews            Review[]
+  sessions           Session[]
+  assignedBounties   SkillBounty[]       @relation("BountyAssignee")
+  createdBounties    SkillBounty[]       @relation("BountyCreator")
+  collections        SkillCollection[]
+  comments           SkillComment[]
+  feedbacks          SkillFeedback[]
+  skills             Skill[]
+  following          UserFollow[]        @relation("Followers")
+  followers          UserFollow[]        @relation("Following")
+
+  @@map("users")
+}
+
+model Skill {
+  id               String          @id @default(uuid())
+  name             String
+  description      String
+  version          String
+  category         String
+  tags             String[]
+  screenshots      String[]
+  status           SkillStatus     @default(DRAFT)
+  authorId         String
+  createdAt        DateTime        @default(now())
+  currency         String          @default("CNY")
+  downloadCount    Int             @default(0)
+  iconUrl          String?
+  isPublic         Boolean         @default(false)
+  namespaceId      String?
+  packageUrl       String?
+  price            Decimal         @default(0) @db.Decimal(10, 2)
+  rating           Float           @default(0)
+  readme           String?
+  reviewCount      Int             @default(0)
+  slug             String          @unique
+  updatedAt        DateTime        @updatedAt
+  authorName       String?
+  authorUrl        String?
+  compatibility    Json?
+  confidence       Float           @default(70)
+  dependencies     Json?
+  documentationUrl String?
+  languages        String[]
+  lastSyncedAt     DateTime?
+  permissions      Json?
+  qualityScore     Float           @default(0)
+  repositoryUrl    String?
+  source           String?
+  type             SkillType       @default(PROMPT)
+  sourceId         String?
+  sourceUrl        String?
+  starCount        Int             @default(0)
+  subcategory      String?
+  syncStatus       String?
+  embedding        Json?
+  embeddingVector  Float[]
+  industryTags     String[]
+  pluginCompatible Boolean         @default(false)
+  pluginIds        String[]
+  inputSchema      Json?
+  outputSchema     Json?
+  categoryPath     String?
+  locale           String          @default("zh-CN")
+  executionConfig  Json? // Flowise 集成配置：存储 API 端点、Docker 镜像或执行参数
+  reviews          Review[]
+  bounties         SkillBounty[]
+  comments         SkillComment[]
+  feedbacks        SkillFeedback[]
+  versions         SkillVersion[]
+  knowledgeFragment KnowledgeFragment?
+  childItems       SkillPackItem[] @relation("SkillPackParent")
+  parentPacks      SkillPackItem[] @relation("SkillPackChild")
+  author           User            @relation(fields: [authorId], references: [id])
+  namespace        Namespace?      @relation(fields: [namespaceId], references: [id])
+
+  @@index([slug])
+  @@index([category])
+  @@index([status])
+  @@index([source])
+  @@index([sourceId])
+  @@index([qualityScore(sort: Desc)])
+  @@index([updatedAt(sort: Desc)])
+  @@index([authorId, createdAt])
+  @@index([authorId, status])
+  @@index([authorId, downloadCount])
+  @@map("skills")
+}
+
+model SkillVersion {
+  id         String   @id @default(uuid())
+  version    String
+  changelog  String?
+  createdAt  DateTime @default(now())
+  manifest   Json
+  packageUrl String
+  skillId    String
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@index([skillId])
+  @@map("skill_versions")
+}
+
+model Namespace {
+  id                 String            @id @default(uuid())
+  name               String
+  slug               String            @unique
+  description        String?
+  visibility         String            @default("public")
+  allowPublicPublish Boolean           @default(false)
+  avatarUrl          String?
+  createdAt          DateTime          @default(now())
+  downloadCount      Int               @default(0)
+  memberCount        Int               @default(1)
+  ownerId            String
+  skillCount         Int               @default(0)
+  updatedAt          DateTime          @updatedAt
+  type               NamespaceType
+  members            NamespaceMember[]
+  policy             NamespacePolicy?
+  owner              User              @relation("NamespaceOwner", fields: [ownerId], references: [id])
+  skills             Skill[]
+
+  @@index([slug])
+  @@map("namespaces")
+}
+
+model NamespaceMember {
+  invitedBy   String?
+  joinedAt    DateTime      @default(now())
+  namespaceId String
+  userId      String
+  role        NamespaceRole
+  namespace   Namespace     @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([namespaceId, userId])
+  @@map("namespace_members")
+}
+
+model NamespacePolicy {
+  allowedVersions    String[]  @default(["*"])
+  autoApproveMembers Boolean   @default(false)
+  maxPackageSizeMb   Int       @default(50)
+  namespaceId        String    @id
+  requireReview      Boolean   @default(true)
+  updatedAt          DateTime  @updatedAt
+  namespace          Namespace @relation(fields: [namespaceId], references: [id], onDelete: Cascade)
+
+  @@map("namespace_policies")
+}
+
+model Review {
+  id              String        @id @default(uuid())
+  skillId         String
+  version         String
+  status          ReviewStatus  @default(PENDING_REVIEW)
+  previousStatus  ReviewStatus?
+  reviewerId      String?
+  reviewNotes     String?
+  rejectionReason String?
+  automatedChecks Json?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  completedAt     DateTime?
+  reviewer        User?         @relation(fields: [reviewerId], references: [id])
+  skill           Skill         @relation(fields: [skillId], references: [id])
+
+  @@index([skillId])
+  @@index([status])
+  @@map("reviews")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  action       String
+  metadata     Json?
+  changes      Json?
+  status       String   @default("success")
+  actorId      String?
+  actorIp      String?
+  createdAt    DateTime @default(now())
+  errorMessage String?
+  resourceId   String
+  resourceType String
+  userAgent    String?
+  actor        User?    @relation(fields: [actorId], references: [id])
+
+  @@index([actorId])
+  @@index([resourceType, resourceId])
+  @@index([action])
+  @@index([createdAt(sort: Desc)])
+  @@map("audit_logs")
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  type              String
+  provider          String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  providerAccountId String
+  userId            String
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  expires      DateTime
+  sessionToken String   @unique
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  keyHash     String
+  prefix      String
+  permissions String[]  @default(["read"])
+  expiresAt   DateTime?
+  lastUsedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([prefix])
+  @@map("api_keys")
+}
+
+model SyncLog {
+  id           String    @id @default(uuid())
+  source       String
+  startedAt    DateTime  @default(now())
+  completedAt  DateTime?
+  totalCount   Int       @default(0)
+  successCount Int       @default(0)
+  failedCount  Int       @default(0)
+  status       String    @default("running")
+  errorMessage String?
+  metadata     Json?
+
+  @@index([source])
+  @@index([startedAt(sort: Desc)])
+  @@map("sync_logs")
+}
+
+model CrawlerTask {
+  id           String    @id @default(uuid())
+  taskType     String
+  target       String
+  status       String    @default("pending")
+  priority     Int       @default(1)
+  retryCount   Int       @default(0)
+  maxRetries   Int       @default(3)
+  scheduledAt  DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  errorMessage String?
+  result       Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([status])
+  @@index([scheduledAt])
+  @@index([createdAt(sort: Desc)])
+  @@map("crawler_tasks")
+}
+
+model SkillFeedback {
+  id                   String   @id @default(uuid())
+  skillId              String
+  userId               String?
+  feedbackType         String
+  currentCategory      String?
+  suggestedCategory    String?
+  currentSubcategory   String?
+  suggestedSubcategory String?
+  reason               String
+  status               String   @default("pending")
+  adminNotes           String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  skill                Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user                 User?    @relation(fields: [userId], references: [id])
+
+  @@index([skillId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_feedbacks")
+}
+
+model SkillComment {
+  id        String         @id @default(uuid())
+  skillId   String
+  userId    String
+  parentId  String?
+  content   String
+  rating    Int?
+  upvotes   Int            @default(0)
+  isEdited  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  parent    SkillComment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  replies   SkillComment[] @relation("CommentReplies")
+  skill     Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([skillId])
+  @@index([userId])
+  @@index([parentId])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_comments")
+}
+
+model UserFollow {
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("Followers", fields: [followerId], references: [id], onDelete: Cascade)
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@id([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("user_follows")
+}
+
+model SkillCollection {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String
+  isPublic    Boolean  @default(true)
+  skills      Json
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isPublic])
+  @@map("skill_collections")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  title     String
+  message   String
+  link      String?
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+  type      NotificationType
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+model CrawlerConfig {
+  id          String   @id @default(uuid())
+  configKey   String   @unique
+  configValue Json
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([configKey])
+  @@map("crawler_configs")
+}
+
+model SkillBounty {
+  id           String              @id @default(uuid())
+  title        String
+  description  String
+  requirements String
+  reward       Decimal             @db.Decimal(10, 2)
+  currency     String              @default("CNY")
+  status       BountyStatus        @default(OPEN)
+  creatorId    String
+  assigneeId   String?
+  skillId      String?
+  deadline     DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  applications BountyApplication[]
+  submissions  BountySubmission[]
+  assignee     User?               @relation("BountyAssignee", fields: [assigneeId], references: [id])
+  creator      User                @relation("BountyCreator", fields: [creatorId], references: [id])
+  skill        Skill?              @relation(fields: [skillId], references: [id])
+
+  @@index([creatorId])
+  @@index([assigneeId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("skill_bounties")
+}
+
+model BountyApplication {
+  id            String            @id @default(uuid())
+  bountyId      String
+  userId        String
+  proposal      String
+  estimatedTime String?
+  portfolio     String?
+  status        ApplicationStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  reviewedAt    DateTime?
+  reviewNote    String?
+  bounty        SkillBounty       @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  user          User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([bountyId, userId])
+  @@index([bountyId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("bounty_applications")
+}
+
+model BountySubmission {
+  id          String           @id @default(uuid())
+  bountyId    String
+  userId      String
+  content     String
+  description String
+  attachments Json?
+  status      SubmissionStatus @default(SUBMITTED)
+  feedback    String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  reviewedAt  DateTime?
+  bounty      SkillBounty      @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([bountyId])
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt(sort: Desc)])
+  @@map("bounty_submissions")
+}
+
+model playing_with_neon {
+  id    Int    @id @default(autoincrement())
+  name  String
+  value Float? @db.Real
+}
+
+enum SkillStatus {
+  DRAFT
+  PENDING_REVIEW
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+enum NamespaceType {
+  PERSONAL
+  TEAM
+  GLOBAL
+}
+
+enum NamespaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum ReviewStatus {
+  DRAFT
+  PENDING_REVIEW
+  UNDER_REVIEW
+  AUTO_APPROVED
+  APPROVED
+  REJECTED
+  REQUIRES_CHANGES
+  ARCHIVED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum NotificationType {
+  COMMENT_REPLY
+  SKILL_RATED
+  FOLLOW
+  SKILL_UPDATED
+  MENTION
+  SYSTEM
+}
+
+enum BountyStatus {
+  OPEN
+  ASSIGNED
+  IN_PROGRESS
+  SUBMITTED
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+enum SubmissionStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+}
+
+enum SkillType {
+  PROMPT
+  KNOWLEDGE
+  RULE
+  SKILL_PACK
+}
+
+model KnowledgeFragment {
+  id           String   @id @default(uuid())
+  skillId      String   @unique
+  skill        Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  version      Int      @default(1)
+  contentType  String   @default("json")
+  content      Json?
+  rawContent   String?
+  vectorized   Boolean  @default(false)
+  chunkCount   Int      @default(0)
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([skillId])
+  @@map("knowledge_fragments")
+}
+
+model KnowledgeVersion {
+  id              String   @id @default(uuid())
+  skillId         String
+  knowledgeId     String
+  version         Int
+  contentSnapshot Json
+  changelog       String?
+  createdBy       String?
+  createdAt       DateTime @default(now())
+
+  @@index([skillId, knowledgeId, version])
+  @@map("knowledge_versions")
+}
+
+model KnowledgeEmbedding {
+  id          String   @id @default(uuid())
+  skillId     String
+  knowledgeId String
+  chunkIndex  Int
+  chunkText   String
+  embedding   Float[]
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  @@index([skillId])
+  @@map("knowledge_embeddings")
+}
+
+model SkillPackItem {
+  packId       String
+  childSkillId String
+  sortOrder    Int      @default(0)
+  pack         Skill    @relation("SkillPackParent", fields: [packId], references: [id], onDelete: Cascade)
+  childSkill   Skill    @relation("SkillPackChild", fields: [childSkillId], references: [id], onDelete: Cascade)
+
+  @@id([packId, childSkillId])
+  @@map("skill_pack_items")
+}

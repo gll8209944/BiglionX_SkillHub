@@ -1,0 +1,22 @@
+# robots.txt for SkillHub
+
+# 允许所有搜索引擎爬虫
+User-agent: *
+Allow: /
+
+# 指定网站地图位置
+# 注意：在生产部署时，请将域名替换为实际域名
+Sitemap: https://skillhub.proclaw.cc/sitemap.xml
+
+# 禁止爬取API端点（非用户页面）
+Disallow: /api/
+
+# 禁止爬取认证相关敏感路径
+Disallow: /login/verify
+Disallow: /login/error
+
+# 禁止爬取管理后台
+Disallow: /admin/
+
+# 禁止爬取仪表板内部页面（仅认证用户可访问）
+Disallow: /dashboard/

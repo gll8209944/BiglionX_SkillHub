@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- 主页 -->
+  <url>
+    <loc>https://skillhub.proclaw.cc/</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- 认证相关页面 -->
+  <url>
+    <loc>https://skillhub.proclaw.cc/login</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/register</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/login/verify</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/login/error</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 技能浏览页面 -->
+  <url>
+    <loc>https://skillhub.proclaw.cc/skills</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/skills/[id]</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/skills/[slug]</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- 仪表板页面 -->
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/analytics</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/namespaces</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/namespaces/[slug]</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/settings</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/settings/api-keys</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/settings/notifications</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/settings/security</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/skills</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/skills/new</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/dashboard/skills/[slug]</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- 管理后台页面 -->
+  <url>
+    <loc>https://skillhub.proclaw.cc/admin</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/admin/analytics</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/admin/audit-logs</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://skillhub.proclaw.cc/admin/reviews</loc>
+    <lastmod>2024-04-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- API端点（通常不包含在sitemap中，但列出供参考） -->
+  <!-- 
+  API endpoints (not included in sitemap as they are not user-facing pages):
+  - /api/auth/*
+  - /api/skills/*
+  - /api/namespaces/*
+  - /api/reviews/*
+  - /api/analytics/*
+  - /api/audit-logs/*
+  - /api/settings/*
+  - /api/upload/*
+  -->
+</urlset>

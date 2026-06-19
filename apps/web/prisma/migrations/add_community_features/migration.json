@@ -1,0 +1,355 @@
+{
+  "version": "6",
+  "dialect": "postgresql",
+  "tables": {
+    "public.skill_comments": {
+      "name": "skill_comments",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "skillId": {
+          "name": "skillId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "parentId": {
+          "name": "parentId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "rating": {
+          "name": "rating",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "upvotes": {
+          "name": "upvotes",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "isEdited": {
+          "name": "isEdited",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "skill_comments_skillId_idx": {
+          "name": "skill_comments_skillId_idx",
+          "fields": ["skillId"],
+          "unique": false
+        },
+        "skill_comments_userId_idx": {
+          "name": "skill_comments_userId_idx",
+          "fields": ["userId"],
+          "unique": false
+        },
+        "skill_comments_parentId_idx": {
+          "name": "skill_comments_parentId_idx",
+          "fields": ["parentId"],
+          "unique": false
+        },
+        "skill_comments_createdAt_idx": {
+          "name": "skill_comments_createdAt_idx",
+          "fields": ["createdAt"],
+          "unique": false,
+          "sort": "Desc"
+        }
+      },
+      "foreignKeys": {
+        "skill_comments_skillId_fkey": {
+          "name": "skill_comments_skillId_fkey",
+          "fields": ["skillId"],
+          "referencedFields": ["id"],
+          "referencedTable": "skills",
+          "onDelete": "Cascade"
+        },
+        "skill_comments_userId_fkey": {
+          "name": "skill_comments_userId_fkey",
+          "fields": ["userId"],
+          "referencedFields": ["id"],
+          "referencedTable": "users",
+          "onDelete": "Cascade"
+        },
+        "skill_comments_parentId_fkey": {
+          "name": "skill_comments_parentId_fkey",
+          "fields": ["parentId"],
+          "referencedFields": ["id"],
+          "referencedTable": "skill_comments",
+          "onDelete": "SetNull"
+        }
+      }
+    },
+    "public.user_follows": {
+      "name": "user_follows",
+      "schema": "public",
+      "columns": {
+        "followerId": {
+          "name": "followerId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "followingId": {
+          "name": "followingId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "user_follows_followerId_idx": {
+          "name": "user_follows_followerId_idx",
+          "fields": ["followerId"],
+          "unique": false
+        },
+        "user_follows_followingId_idx": {
+          "name": "user_follows_followingId_idx",
+          "fields": ["followingId"],
+          "unique": false
+        }
+      },
+      "foreignKeys": {
+        "user_follows_followerId_fkey": {
+          "name": "user_follows_followerId_fkey",
+          "fields": ["followerId"],
+          "referencedFields": ["id"],
+          "referencedTable": "users",
+          "onDelete": "Cascade"
+        },
+        "user_follows_followingId_fkey": {
+          "name": "user_follows_followingId_fkey",
+          "fields": ["followingId"],
+          "referencedFields": ["id"],
+          "referencedTable": "users",
+          "onDelete": "Cascade"
+        }
+      },
+      "primaryKey": {
+        "fields": ["followerId", "followingId"]
+      }
+    },
+    "public.skill_collections": {
+      "name": "skill_collections",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "isPublic": {
+          "name": "isPublic",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        },
+        "skills": {
+          "name": "skills",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "skill_collections_userId_idx": {
+          "name": "skill_collections_userId_idx",
+          "fields": ["userId"],
+          "unique": false
+        },
+        "skill_collections_isPublic_idx": {
+          "name": "skill_collections_isPublic_idx",
+          "fields": ["isPublic"],
+          "unique": false
+        }
+      },
+      "foreignKeys": {
+        "skill_collections_userId_fkey": {
+          "name": "skill_collections_userId_fkey",
+          "fields": ["userId"],
+          "referencedFields": ["id"],
+          "referencedTable": "users",
+          "onDelete": "Cascade"
+        }
+      }
+    },
+    "public.notifications": {
+      "name": "notifications",
+      "schema": "public",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "message": {
+          "name": "message",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "link": {
+          "name": "link",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "isRead": {
+          "name": "isRead",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "metadata": {
+          "name": "metadata",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp(3)",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "CURRENT_TIMESTAMP"
+        }
+      },
+      "indexes": {
+        "notifications_userId_idx": {
+          "name": "notifications_userId_idx",
+          "fields": ["userId"],
+          "unique": false
+        },
+        "notifications_isRead_idx": {
+          "name": "notifications_isRead_idx",
+          "fields": ["isRead"],
+          "unique": false
+        },
+        "notifications_createdAt_idx": {
+          "name": "notifications_createdAt_idx",
+          "fields": ["createdAt"],
+          "unique": false,
+          "sort": "Desc"
+        }
+      },
+      "foreignKeys": {
+        "notifications_userId_fkey": {
+          "name": "notifications_userId_fkey",
+          "fields": ["userId"],
+          "referencedFields": ["id"],
+          "referencedTable": "users",
+          "onDelete": "Cascade"
+        }
+      }
+    }
+  },
+  "enums": {
+    "NotificationType": {
+      "values": [
+        "COMMENT_REPLY",
+        "SKILL_RATED",
+        "FOLLOW",
+        "SKILL_UPDATED",
+        "MENTION",
+        "SYSTEM"
+      ]
+    }
+  }
+}
