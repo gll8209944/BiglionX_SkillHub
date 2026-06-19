@@ -1,9 +1,10 @@
+import { prisma } from '@/lib/prisma';
 import { MetadataRoute } from 'next';
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.com';
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc';
 
-  // 静态页面
+  // 静态公开页面
   const staticPages = [
     {
       url: baseUrl,
@@ -12,121 +13,61 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
-      url: `${baseUrl}/login`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/register`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.8,
-    },
-    {
       url: `${baseUrl}/skills`,
       lastModified: new Date(),
       changeFrequency: 'daily' as const,
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/dashboard`,
+      url: `${baseUrl}/sdk`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/dashboard/analytics`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/dashboard/namespaces`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/dashboard/settings`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/dashboard/settings/api-keys`,
+      url: `${baseUrl}/search-demo`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/dashboard/settings/notifications`,
+      url: `${baseUrl}/widget-demo`,
       lastModified: new Date(),
       changeFrequency: 'monthly' as const,
       priority: 0.6,
     },
     {
-      url: `${baseUrl}/dashboard/settings/security`,
+      url: `${baseUrl}/bounties`,
       lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.6,
-    },
-    {
-      url: `${baseUrl}/dashboard/skills`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
+      changeFrequency: 'daily' as const,
       priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/dashboard/skills/new`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/admin`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/admin/analytics`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/admin/audit-logs`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/admin/reviews`,
-      lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.7,
     },
   ];
 
-  // 在实际应用中，这里可以从数据库获取动态页面
-  // 例如：技能页面、命名空间页面等
-  // const dynamicSkills = await getSkillsFromDatabase();
-  // const dynamicNamespaces = await getNamespacesFromDatabase();
+  // 从数据库获取所有公开技能页面
+  let dynamicSkillPages: MetadataRoute.Sitemap = [];
+  try {
+    const skills = await prisma.skill.findMany({
+      where: { status: { not: 'ARCHIVED' } },
+      select: {
+        slug: true,
+        updatedAt: true,
+      },
+      orderBy: { updatedAt: 'desc' },
+    });
+
+    dynamicSkillPages = skills.map((skill) => ({
+      url: `${baseUrl}/skills/${skill.slug}`,
+      lastModified: skill.updatedAt,
+      changeFrequency: 'weekly' as const,
+      priority: 0.7,
+    }));
+  } catch (error) {
+    console.error('Failed to fetch skills for sitemap:', error);
+  }
 
   return [
     ...staticPages,
-    // ...dynamicSkills.map(skill => ({
-    //   url: `${baseUrl}/skills/${skill.slug}`,
-    //   lastModified: skill.updatedAt,
-    //   changeFrequency: 'weekly' as const,
-    //   priority: 0.7,
-    // })),
-    // ...dynamicNamespaces.map(namespace => ({
-    //   url: `${baseUrl}/dashboard/namespaces/${namespace.slug}`,
-    //   lastModified: namespace.updatedAt,
-    //   changeFrequency: 'weekly' as const,
-    //   priority: 0.6,
-    // })),
+    ...dynamicSkillPages,
   ];
 }
