@@ -19,9 +19,9 @@ RUN npm ci
 # 复制源代码
 COPY . .
 
-# 构建 Web 应用
+# 构建 Web 应用（跳过 prisma db push，因为构建阶段无数据库连接）
 WORKDIR /app/apps/web
-RUN npm run build
+RUN npx prisma generate && npx next build
 
 # 生产阶段
 FROM node:20-alpine AS web-production
