@@ -55,7 +55,7 @@ check_env_file() {
 pull_latest_code() {
     echo -e "\n${YELLOW}拉取最新代码...${NC}"
     
-    git pull origin main
+    git pull origin master
     
     echo -e "${GREEN}✓ 代码更新完成${NC}"
 }

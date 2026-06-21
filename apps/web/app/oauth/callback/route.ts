@@ -1,7 +1,11 @@
 /**
  * GET /oauth/callback
  *
- * OIDC Authorization Code 回调处理：
+ * OAuth 回调处理：
+ * - ?provider=github → GitHub OAuth 回调
+ * - 无 provider 参数 → NvwaX OIDC 回调
+ *
+ * NvwaX OIDC 流程：
  * 1. 校验 state（防 CSRF）
  * 2. 读取 code_verifier（从 cookie）
  * 3. 调 token 端点换 token
@@ -22,10 +26,21 @@ import {
   getOAuthState,
   createSession,
   clearSession,
+  createGitHubSession,
 } from '@/lib/oidc-session';
+import { exchangeGitHubCode, getGitHubUser, getGitHubEmails } from '@/lib/providers/github';
+import { signSessionToken } from '@/lib/providers/session-jwt';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
+  const provider = searchParams.get('provider');
+
+  // === GitHub 回调处理 ===
+  if (provider === 'github') {
+    return handleGitHubCallback(request, searchParams);
+  }
+
+  // === NvwaX OIDC 回调处理（现有逻辑） ===
   const code = searchParams.get('code');
   const state = searchParams.get('state');
   const error = searchParams.get('error');
@@ -93,5 +108,108 @@ export async function GET(request: NextRequest) {
     // 清除可能残留的 cookie
     await clearSession().catch(() => {});
     return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url));
+  }
+}
+
+/**
+ * 处理 GitHub OAuth 回调
+ */
+async function handleGitHubCallback(request: NextRequest, searchParams: URLSearchParams) {
+  const code = searchParams.get('code');
+  const state = searchParams.get('state');
+  const error = searchParams.get('error');
+
+  if (error) {
+    return NextResponse.redirect(new URL('/auth/login?error=github_denied', request.url));
+  }
+
+  if (!code || !state) {
+    return NextResponse.redirect(new URL('/auth/login?error=invalid_callback', request.url));
+  }
+
+  // 1. 校验 state（复用现有 cookie 机制）
+  const storedState = await getOAuthState();
+  if (state !== storedState) {
+    return NextResponse.redirect(new URL('/auth/login?error=state_mismatch', request.url));
+  }
+
+  try {
+    // 2. 换取 GitHub access_token
+    const tokenResponse = await exchangeGitHubCode(code);
+
+    // 3. 获取用户信息
+    const githubUser = await getGitHubUser(tokenResponse.access_token);
+
+    // 4. 获取邮箱（GitHub 可能不返回 email）
+    let email = githubUser.email;
+    if (!email) {
+      const emails = await getGitHubEmails(tokenResponse.access_token);
+      const primaryEmail = emails.find(e => e.primary && e.verified);
+      email = primaryEmail?.email || `${githubUser.login}@github.local`;
+    }
+
+    // 5. 查/建 Prisma User
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        name: githubUser.name || githubUser.login,
+        image: githubUser.avatar_url,
+      },
+      create: {
+        email,
+        name: githubUser.name || githubUser.login,
+        image: githubUser.avatar_url,
+        role: 'USER',
+      },
+    });
+
+    // 6. 创建 Account 关联（如果不存在）
+    await prisma.account.upsert({
+      where: {
+        provider_providerAccountId: {
+          provider: 'github',
+          providerAccountId: String(githubUser.id),
+        },
+      },
+      update: {
+        access_token: tokenResponse.access_token,
+        scope: tokenResponse.scope,
+      },
+      create: {
+        userId: user.id,
+        type: 'oauth',
+        provider: 'github',
+        providerAccountId: String(githubUser.id),
+        access_token: tokenResponse.access_token,
+        token_type: tokenResponse.token_type,
+        scope: tokenResponse.scope,
+      },
+    });
+
+    // 7. 签发自签 Session JWT
+    const sessionToken = await signSessionToken({
+      sub: user.id,
+      email: user.email,
+      name: user.name || user.email,
+      picture: user.image,
+      provider: 'github',
+    });
+
+    // 8. 设置 cookie
+    await createGitHubSession(sessionToken, {
+      id: user.id,
+      name: user.name || user.email,
+      email: user.email,
+      is_admin: user.role === 'ADMIN',
+    });
+
+    // 9. 重定向
+    const returnUrl = searchParams.get('return_url') || '/dashboard';
+    return NextResponse.redirect(new URL(returnUrl, request.url));
+
+  } catch (err) {
+    console.error('[GitHub Callback] Error:', err);
+    await clearSession().catch(() => {});
+    return NextResponse.redirect(new URL('/auth/login?error=github_callback_error', request.url));
   }
 }

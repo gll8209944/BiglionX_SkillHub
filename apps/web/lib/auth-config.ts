@@ -14,6 +14,8 @@
 
 import { verifyAccessToken, refreshAccessToken } from '@/lib/oidc-rp';
 import { getAccessToken, getRefreshToken, updateSession, getSessionUser } from '@/lib/oidc-session';
+import { verifySessionToken } from '@/lib/providers/session-jwt';
+import { prisma } from '@/lib/prisma';
 
 export interface SessionUser {
   id: string;
@@ -33,9 +35,10 @@ export interface Session {
  * 
  * 流程：
  * 1. 从 cookie 读取 access_token
- * 2. 尝试验证（解码 + RS256 签名校验）
- * 3. 如果 token 过期，尝试 refresh_token 续期
- * 4. 返回 Session（兼容原有接口）
+ * 2. 先尝试自签 HS256 JWT 验证（GitHub session，本地计算 <1ms）
+ * 3. 失败则尝试 NvwaX RS256 JWT 验证（可能需要 JWKS 网络请求）
+ * 4. 如果 RS256 token 过期，尝试 refresh_token 续期
+ * 5. 返回 Session（兼容原有接口）
  * 
  * @returns Session | null
  */
@@ -60,7 +63,28 @@ export async function auth(): Promise<Session | null> {
     return null;
   }
 
-  // 2. 尝试验证
+  // 2. 先尝试自签 HS256 JWT（GitHub session）
+  // 放在 RS256 之前：HS256 是本地计算（<1ms），RS256 可能需要 JWKS 网络请求
+  const sessionPayload = await verifySessionToken(accessToken);
+  if (sessionPayload) {
+    // 查询 Prisma 获取最新 role（管理员可能通过后台修改了用户角色）
+    const dbUser = await prisma.user.findUnique({
+      where: { id: sessionPayload.sub },
+      select: { role: true },
+    });
+    return {
+      user: {
+        id: sessionPayload.sub,
+        name: sessionPayload.name,
+        email: sessionPayload.email,
+        image: sessionPayload.picture,
+        is_admin: dbUser?.role === 'ADMIN',
+      },
+      expires: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+    };
+  }
+
+  // 3. 尝试 NvwaX RS256 JWT 验证
   try {
     const verified = await verifyAccessToken(accessToken);
     return {
@@ -77,7 +101,7 @@ export async function auth(): Promise<Session | null> {
     // Token 无效或过期，尝试 refresh
   }
 
-  // 3. token 过期，尝试 refresh
+  // 4. token 过期，尝试 refresh
   const refreshToken = await getRefreshToken();
   if (!refreshToken) return null;
 

@@ -49,7 +49,7 @@ function resolveSecure(): boolean {
 }
 
 // Cookie 基础选项
-const BASE_COOKIE_OPTIONS = {
+export const BASE_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: resolveSecure(),
   sameSite: resolveSameSite(),
@@ -308,4 +308,47 @@ function extractUserFromToken(
   } catch {
     return null;
   }
+}
+
+// ============================================================
+// GitHub Session（自签 JWT）
+// ============================================================
+
+/**
+ * 创建 GitHub Session（使用自签 JWT）
+ *
+ * 与 createSession(tokens) 的区别：
+ * - access_token 存的是自签 HS256 JWT（而非 NvwaX RS256 JWT）
+ * - 无 refresh_token（GitHub token 默认不过期）
+ * - user cookie 结构相同
+ *
+ * 注意：extractDomain() 对于 IP 部署（如 8.136.122.123）返回 undefined，
+ * 这意味着 cookie 不设 domain 属性，浏览器自动绑定当前域名。
+ * 这是正确行为，不影响功能。
+ */
+export async function createGitHubSession(
+  sessionToken: string,
+  userInfo: { id: string; name: string; email: string; is_admin: boolean }
+): Promise<void> {
+  const cookieStore = await cookies();
+  const baseDomain = extractDomain();
+
+  const tokenOptions = {
+    ...BASE_COOKIE_OPTIONS,
+    maxAge: SESSION_MAX_AGE, // 7 天
+    ...(baseDomain ? { domain: baseDomain } : {}),
+  };
+
+  // access_token cookie 存自签 JWT
+  cookieStore.set(COOKIE_NAMES.ACCESS_TOKEN, sessionToken, tokenOptions);
+
+  // user cookie（非 httpOnly，客户端可读）
+  cookieStore.set(COOKIE_NAMES.USER, JSON.stringify(userInfo), {
+    ...BASE_COOKIE_OPTIONS,
+    httpOnly: false,
+    maxAge: SESSION_MAX_AGE,
+    ...(baseDomain ? { domain: baseDomain } : {}),
+  });
+
+  // 注意：不设置 refresh_token cookie（GitHub 无需轮换）
 }
