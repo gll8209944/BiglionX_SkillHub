@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { verifyAccessToken } from '@/lib/oidc-rp';
+import { verifySessionToken } from '@/lib/providers/session-jwt';
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -73,13 +74,26 @@ export async function middleware(request: NextRequest) {
       );
     }
 
+    // 1. 先尝试自签 HS256 验证（本地计算，<1ms）
+    const sessionPayload = await verifySessionToken(accessToken);
+    if (sessionPayload) {
+      // 自签 JWT 验证通过，请求继续
+      return response;
+    }
+
+    // 2. 尝试 NvwaX RS256 验证（可能需要 JWKS 网络请求）
     try {
       await verifyAccessToken(accessToken);
+      // NvwaX JWT 验证通过，请求继续
+      return response;
     } catch {
-      return NextResponse.redirect(
-        new URL('/auth/login', request.url)
-      );
+      // 不是 NvwaX JWT
     }
+
+    // 3. 两种验证都失败，重定向到登录页
+    return NextResponse.redirect(
+      new URL('/auth/login', request.url)
+    );
   }
 
   return response;
