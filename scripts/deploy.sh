@@ -119,7 +119,7 @@ detect_changes() {
 build_web_only() {
     echo -e "\n${YELLOW}仅构建 Web 服务...${NC}"
 
-    docker-compose -f ${DOCKER_COMPOSE_FILE} build web --no-cache
+    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache web
 
     echo -e "${GREEN}✓ Web 镜像构建完成${NC}"
 }
