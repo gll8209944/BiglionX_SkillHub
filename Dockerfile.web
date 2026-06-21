@@ -11,19 +11,6 @@ RUN npm config set registry https://registry.npmmirror.com
 
 # 复制根 package.json 和 workspace 配置
 COPY package*.json ./
-COPY pnpm-workspace.yaml ./ 2>/dev/null || true
-COPY turbo.json ./ 2>/dev/null || true
-
-# 复制所有 workspace 的 package.json（包括 apps 和 packages）
-COPY apps/web/package*.json ./apps/web/
-COPY packages/search-sdk/package*.json ./packages/search-sdk/
-COPY packages/widget/package*.json ./packages/widget/
-COPY packages/core/package*.json ./packages/core/ 2>/dev/null || true
-
-# 复制 tsconfig 文件（如果存在）
-COPY packages/search-sdk/tsconfig*.json ./packages/search-sdk/ 2>/dev/null || true
-COPY packages/widget/tsconfig*.json ./packages/widget/ 2>/dev/null || true
-COPY packages/core/tsconfig*.json ./packages/core/ 2>/dev/null || true
 
 # 安装依赖（支持 npm workspaces）
 RUN npm install
@@ -60,7 +47,6 @@ COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 COPY packages/search-sdk/package*.json ./packages/search-sdk/
 COPY packages/widget/package*.json ./packages/widget/
-COPY packages/core/package*.json ./packages/core/ 2>/dev/null || true
 
 # 仅安装生产依赖
 RUN npm install --production
@@ -74,7 +60,6 @@ COPY --from=web-builder /app/apps/web/prisma ./prisma
 # 复制已构建的 workspace 包（关键！）
 COPY --from=web-builder /app/packages/search-sdk/dist ./node_modules/@skillhub/search-sdk
 COPY --from=web-builder /app/packages/widget/dist ./node_modules/@skillhub/widget
-COPY --from=web-builder /app/packages/core/dist ./node_modules/@skillhub/core 2>/dev/null || true
 
 EXPOSE 3000
 
