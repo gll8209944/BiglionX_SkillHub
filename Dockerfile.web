@@ -1,4 +1,4 @@
-﻿# 多阶段构建 - Web 应用
+# 多阶段构建 - Web 应用
 FROM node:20-alpine AS web-builder
 
 # 安装 OpenSSL（jose 需要用于 RS256 签名验证）
@@ -9,26 +9,36 @@ WORKDIR /app
 # 配置国内 npm 镜像加速
 RUN npm config set registry https://registry.npmmirror.com
 
-# 复制 package.json 和 lock 文件（包括 workspace 的）
+# 复制根 package.json 和 workspace 配置
 COPY package*.json ./
+COPY pnpm-workspace.yaml ./ 2>/dev/null || true
+COPY turbo.json ./ 2>/dev/null || true
+
+# 复制所有 workspace 的 package.json（包括 apps 和 packages）
 COPY apps/web/package*.json ./apps/web/
 COPY packages/*/package*.json ./packages/
+COPY packages/*/tsconfig*.json ./packages/ 2>/dev/null || true
 
-# 安装依赖（支持 npm workspaces）- 使用 npm install 因为没有 lock 文件
+# 安装依赖（支持 npm workspaces）
 RUN npm install
 
-# 复制源代码
+# 复制所有源代码
 COPY . .
 
-# 重新运行 npm install 来链接 workspace 包（此时 workspace 包源码已存在）
+# 重新运行 npm install 以确保 workspace 包正确链接
 RUN npm install
 
-# 构建 workspace 包（@skillhub/search-sdk 和 @skillhub/widget）
+# 构建 search-sdk（widget 依赖它）
 WORKDIR /app/packages/search-sdk
 RUN npm run build
 
+# 构建 widget
 WORKDIR /app/packages/widget
 RUN npm run build
+
+# 重新安装以确保 web 应用能链接到已构建的 workspace 包
+WORKDIR /app
+RUN npm install
 
 # 构建 Web 应用（跳过 prisma db push，因为构建阶段无数据库连接）
 WORKDIR /app/apps/web
@@ -43,6 +53,7 @@ WORKDIR /app
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
 COPY packages/*/package*.json ./packages/
+COPY packages/*/tsconfig*.json ./packages/ 2>/dev/null || true
 
 # 仅安装生产依赖
 RUN npm install --production
@@ -51,7 +62,12 @@ RUN npm install --production
 COPY --from=web-builder /app/apps/web/.next ./.next
 COPY --from=web-builder /app/apps/web/public ./public
 COPY --from=web-builder /app/apps/web/next.config.* ./
-COPY --from=web-builder /app/node_modules/@skillhub ./node_modules/@skillhub
+COPY --from=web-builder /app/apps/web/prisma ./prisma
+
+# 复制已构建的 workspace 包（关键！）
+COPY --from=web-builder /app/packages/search-sdk/dist ./node_modules/@skillhub/search-sdk
+COPY --from=web-builder /app/packages/widget/dist ./node_modules/@skillhub/widget
+COPY --from=web-builder /app/packages/core/dist ./node_modules/@skillhub/core 2>/dev/null || true
 
 EXPOSE 3000
 
