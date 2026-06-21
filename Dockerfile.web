@@ -9,15 +9,23 @@ WORKDIR /app
 # 配置国内 npm 镜像加速
 RUN npm config set registry https://registry.npmmirror.com
 
-# 复制 package.json 和 lock 文件
+# 复制 package.json 和 lock 文件（包括 workspace 的）
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
+COPY packages/*/package*.json ./packages/
 
-# 安装依赖
-RUN npm ci
+# 安装依赖（支持 npm workspaces）- 使用 npm install 因为没有 lock 文件
+RUN npm install
 
 # 复制源代码
 COPY . .
+
+# 构建 workspace 包（@skillhub/search-sdk 和 @skillhub/widget）
+WORKDIR /app/packages/search-sdk
+RUN npm run build
+
+WORKDIR /app/packages/widget
+RUN npm run build
 
 # 构建 Web 应用（跳过 prisma db push，因为构建阶段无数据库连接）
 WORKDIR /app/apps/web
@@ -28,17 +36,19 @@ FROM node:20-alpine AS web-production
 
 WORKDIR /app
 
-# 复制 package.json
+# 复制 package.json（包括 workspace 的）
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
+COPY packages/*/package*.json ./packages/
 
 # 仅安装生产依赖
-RUN npm ci --production
+RUN npm install --production
 
 # 复制构建产物
 COPY --from=web-builder /app/apps/web/.next ./.next
 COPY --from=web-builder /app/apps/web/public ./public
 COPY --from=web-builder /app/apps/web/next.config.* ./
+COPY --from=web-builder /app/node_modules/@skillhub ./node_modules/@skillhub
 
 EXPOSE 3000
 
