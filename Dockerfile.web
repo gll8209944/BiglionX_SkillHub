@@ -13,6 +13,9 @@ RUN npm config set registry https://registry.npmmirror.com
 COPY package*.json ./
 
 # 安装依赖（支持 npm workspaces）
+# 使用 npm_config_ignore_scripts=true 跳过所有 postinstall 脚本
+# 避免 cypress 等 devDependencies 的 postinstall（如下载二进制）消耗大量磁盘空间
+ENV npm_config_ignore_scripts=true
 RUN npm install
 
 # 复制所有源代码
