@@ -16,8 +16,14 @@ COPY turbo.json ./ 2>/dev/null || true
 
 # 复制所有 workspace 的 package.json（包括 apps 和 packages）
 COPY apps/web/package*.json ./apps/web/
-COPY packages/*/package*.json ./packages/
-COPY packages/*/tsconfig*.json ./packages/ 2>/dev/null || true
+COPY packages/search-sdk/package*.json ./packages/search-sdk/
+COPY packages/widget/package*.json ./packages/widget/
+COPY packages/core/package*.json ./packages/core/ 2>/dev/null || true
+
+# 复制 tsconfig 文件（如果存在）
+COPY packages/search-sdk/tsconfig*.json ./packages/search-sdk/ 2>/dev/null || true
+COPY packages/widget/tsconfig*.json ./packages/widget/ 2>/dev/null || true
+COPY packages/core/tsconfig*.json ./packages/core/ 2>/dev/null || true
 
 # 安装依赖（支持 npm workspaces）
 RUN npm install
@@ -52,8 +58,9 @@ WORKDIR /app
 # 复制 package.json（包括 workspace 的）
 COPY package*.json ./
 COPY apps/web/package*.json ./apps/web/
-COPY packages/*/package*.json ./packages/
-COPY packages/*/tsconfig*.json ./packages/ 2>/dev/null || true
+COPY packages/search-sdk/package*.json ./packages/search-sdk/
+COPY packages/widget/package*.json ./packages/widget/
+COPY packages/core/package*.json ./packages/core/ 2>/dev/null || true
 
 # 仅安装生产依赖
 RUN npm install --production
