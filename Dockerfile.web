@@ -20,6 +20,9 @@ RUN npm install
 # 复制源代码
 COPY . .
 
+# 重新运行 npm install 来链接 workspace 包（此时 workspace 包源码已存在）
+RUN npm install
+
 # 构建 workspace 包（@skillhub/search-sdk 和 @skillhub/widget）
 WORKDIR /app/packages/search-sdk
 RUN npm run build
