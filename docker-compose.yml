@@ -14,12 +14,12 @@ services:
       - DATABASE_URL=postgresql://skillhub:${POSTGRES_PASSWORD:-ChangeMe_InProduction_2026!}@db:5432/skillhub
       - REDIS_URL=redis://redis:6379
       # GitHub OAuth 和 Session 所需环境变量（从 .env.production 读取）
-      - NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - SESSION_SECRET=${SESSION_SECRET}
-      - SKILLHUB_OIDC_CLIENT_ID=${SKILLHUB_OIDC_CLIENT_ID:-skillhub-web}
-      - SKILLHUB_OIDC_DISCOVERY_URL=${SKILLHUB_OIDC_DISCOVERY_URL:-https://account.proclaw.cc/.well-known/openid-configuration}
+      - NEXT_PUBLIC_APP_URL
+      - GITHUB_CLIENT_ID
+      - GITHUB_CLIENT_SECRET
+      - SESSION_SECRET
+      - SKILLHUB_OIDC_CLIENT_ID
+      - SKILLHUB_OIDC_DISCOVERY_URL
     depends_on:
       db:
         condition: service_healthy
