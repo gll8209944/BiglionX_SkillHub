@@ -1,8 +1,8 @@
 ﻿# 多阶段构建 - Web 应用
 FROM node:20-alpine AS web-builder
 
-# 安装 OpenSSL 1.1 兼容库
-RUN apk add --no-cache openssl1.1-compat || apk add --no-cache openssl
+# 安装 OpenSSL（jose 需要用于 RS256 签名验证）
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
