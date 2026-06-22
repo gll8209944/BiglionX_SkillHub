@@ -76,6 +76,10 @@ COPY --from=web-builder /app/apps/web/public ./apps/web/public
 COPY --from=web-builder /app/apps/web/next.config.* ./apps/web/
 COPY --from=web-builder /app/apps/web/prisma ./apps/web/prisma
 
+# Prisma Client（构建阶段 generate 产物，生产镜像必须复制）
+COPY --from=web-builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=web-builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
+
 # 复制已构建的 workspace 包（关键！）
 COPY --from=web-builder /app/packages/search-sdk/dist ./node_modules/@skillhub/search-sdk
 COPY --from=web-builder /app/packages/widget/dist ./node_modules/@skillhub/widget
