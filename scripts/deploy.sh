@@ -129,8 +129,8 @@ build_web_only() {
     fi
     echo -e "${BLUE}构建参数 NEXT_PUBLIC_APP_URL=${APP_URL}${NC}"
 
-    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache web \
-        --build-arg NEXT_PUBLIC_APP_URL="${APP_URL}"
+    export NEXT_PUBLIC_APP_URL="${APP_URL}"
+    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache web
 
     echo -e "${GREEN}✓ Web 镜像构建完成${NC}"
 }
