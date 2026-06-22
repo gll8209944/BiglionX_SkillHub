@@ -55,6 +55,12 @@ RUN npx prisma generate && npx next build
 # ============================================================
 FROM node:20-slim AS web-production
 
+# Prisma 运行时依赖 OpenSSL（node:20-slim 默认不含）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # 健康检查
