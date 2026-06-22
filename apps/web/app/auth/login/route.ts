@@ -18,6 +18,11 @@ import { getGitHubAuthUrl } from '@/lib/providers/github';
 import { randomBytes } from 'crypto';
 
 export async function GET(request: NextRequest) {
+  const error = request.nextUrl.searchParams.get('error');
+  if (error) {
+    redirect(`/login?error=${encodeURIComponent(error)}`);
+  }
+
   const provider = request.nextUrl.searchParams.get('provider');
 
   // === GitHub OAuth 流程 ===

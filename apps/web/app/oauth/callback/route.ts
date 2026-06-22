@@ -20,6 +20,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { appUrl } from '@/lib/app-url';
 import { exchangeCodeForToken, getUserInfo } from '@/lib/oidc-rp';
 import {
   getCodeVerifier,
@@ -48,11 +49,11 @@ export async function GET(request: NextRequest) {
   // IdP 返回的错误
   if (error) {
     console.error('[OIDC Callback] IdP error:', error, searchParams.get('error_description'));
-    return NextResponse.redirect(new URL('/auth/login?error=oidc_error', request.url));
+    return NextResponse.redirect(appUrl('/login?error=oidc_error'));
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/auth/login?error=missing_code', request.url));
+    return NextResponse.redirect(appUrl('/login?error=missing_code'));
   }
 
   try {
@@ -60,13 +61,13 @@ export async function GET(request: NextRequest) {
     const storedState = await getOAuthState();
     if (state && storedState && state !== storedState) {
       console.error('[OIDC Callback] State mismatch');
-      return NextResponse.redirect(new URL('/auth/login?error=state_mismatch', request.url));
+      return NextResponse.redirect(appUrl('/login?error=state_mismatch'));
     }
 
     // 2. 读取 code_verifier
     const codeVerifier = await getCodeVerifier();
     if (!codeVerifier) {
-      return NextResponse.redirect(new URL('/auth/login?error=missing_verifier', request.url));
+      return NextResponse.redirect(appUrl('/login?error=missing_verifier'));
     }
 
     // 3. 换 token
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
     // 4. 获取用户信息
     const userInfo = await getUserInfo(tokens.access_token);
     if (!userInfo.email) {
-      return NextResponse.redirect(new URL('/auth/login?error=missing_email', request.url));
+      return NextResponse.redirect(appUrl('/login?error=missing_email'));
     }
 
     // 5. 查/建 Prisma User（同步 is_admin → User.role）
@@ -102,12 +103,12 @@ export async function GET(request: NextRequest) {
     // 7. 获取原访问页
     const returnUrl = searchParams.get('return_url') || '/dashboard';
 
-    return NextResponse.redirect(new URL(returnUrl, request.url));
+    return NextResponse.redirect(appUrl(returnUrl));
   } catch (err) {
     console.error('[OIDC Callback] Error:', err);
     // 清除可能残留的 cookie
     await clearSession().catch(() => {});
-    return NextResponse.redirect(new URL('/auth/login?error=callback_error', request.url));
+    return NextResponse.redirect(appUrl('/login?error=callback_error'));
   }
 }
 
@@ -120,17 +121,17 @@ async function handleGitHubCallback(request: NextRequest, searchParams: URLSearc
   const error = searchParams.get('error');
 
   if (error) {
-    return NextResponse.redirect(new URL('/auth/login?error=github_denied', request.url));
+    return NextResponse.redirect(appUrl('/login?error=github_denied'));
   }
 
   if (!code || !state) {
-    return NextResponse.redirect(new URL('/auth/login?error=invalid_callback', request.url));
+    return NextResponse.redirect(appUrl('/login?error=invalid_callback'));
   }
 
   // 1. 校验 state（复用现有 cookie 机制）
   const storedState = await getOAuthState();
   if (state !== storedState) {
-    return NextResponse.redirect(new URL('/auth/login?error=state_mismatch', request.url));
+    return NextResponse.redirect(appUrl('/login?error=state_mismatch'));
   }
 
   try {
@@ -205,11 +206,11 @@ async function handleGitHubCallback(request: NextRequest, searchParams: URLSearc
 
     // 9. 重定向
     const returnUrl = searchParams.get('return_url') || '/dashboard';
-    return NextResponse.redirect(new URL(returnUrl, request.url));
+    return NextResponse.redirect(appUrl(returnUrl));
 
   } catch (err) {
     console.error('[GitHub Callback] Error:', err);
     await clearSession().catch(() => {});
-    return NextResponse.redirect(new URL('/auth/login?error=github_callback_error', request.url));
+    return NextResponse.redirect(appUrl('/login?error=github_callback_error'));
   }
 }

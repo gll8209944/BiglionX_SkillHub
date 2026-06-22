@@ -1,8 +1,15 @@
+# ============================================================
 # 多阶段构建 - Web 应用
-FROM node:20-alpine AS web-builder
+# 构建阶段: node:20-slim (Debian) — 确保 Prisma 生成 linux-glibc 引擎
+# 生产阶段: node:20-slim (Debian) — 与构建阶段一致，无 musl/glibc 兼容问题
+# ============================================================
+FROM node:20-slim AS web-builder
 
-# 安装 OpenSSL（jose 需要用于 RS256 签名验证）
-RUN apk add --no-cache openssl
+# 安装构建依赖
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -13,8 +20,6 @@ RUN npm config set registry https://registry.npmmirror.com
 COPY package*.json ./
 
 # 安装依赖（支持 npm workspaces）
-# 使用 npm_config_ignore_scripts=true 跳过所有 postinstall 脚本
-# 避免 cypress 等 devDependencies 的 postinstall（如下载二进制）消耗大量磁盘空间
 ENV npm_config_ignore_scripts=true
 RUN npm install
 
@@ -36,14 +41,25 @@ RUN npm run build
 WORKDIR /app
 RUN npm install
 
-# 构建 Web 应用（跳过 prisma db push，因为构建阶段无数据库连接）
+# 构建 Web 应用
+# NEXT_PUBLIC_* 在 next build 时写入客户端 bundle；ECS IP 部署需在构建时传入
+ARG NEXT_PUBLIC_APP_URL=http://localhost:3000
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
+
+# 注意：prisma generate 需要在构建阶段完成（RUN 时有网络），生产镜像只复制产物
 WORKDIR /app/apps/web
 RUN npx prisma generate && npx next build
 
+# ============================================================
 # 生产阶段
-FROM node:20-alpine AS web-production
+# ============================================================
+FROM node:20-slim AS web-production
 
 WORKDIR /app
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -sf http://localhost:3000/api/health || exit 1
 
 # 复制 package.json（包括 workspace 的）
 COPY package*.json ./
@@ -55,10 +71,10 @@ COPY packages/widget/package*.json ./packages/widget/
 RUN npm install --production
 
 # 复制构建产物
-COPY --from=web-builder /app/apps/web/.next ./.next
-COPY --from=web-builder /app/apps/web/public ./public
-COPY --from=web-builder /app/apps/web/next.config.* ./
-COPY --from=web-builder /app/apps/web/prisma ./prisma
+COPY --from=web-builder /app/apps/web/.next ./apps/web/.next
+COPY --from=web-builder /app/apps/web/public ./apps/web/public
+COPY --from=web-builder /app/apps/web/next.config.* ./apps/web/
+COPY --from=web-builder /app/apps/web/prisma ./apps/web/prisma
 
 # 复制已构建的 workspace 包（关键！）
 COPY --from=web-builder /app/packages/search-sdk/dist ./node_modules/@skillhub/search-sdk
@@ -66,4 +82,6 @@ COPY --from=web-builder /app/packages/widget/dist ./node_modules/@skillhub/widge
 
 EXPOSE 3000
 
+# 切换到 apps/web 目录再启动
+WORKDIR /app/apps/web
 CMD ["npm", "start"]

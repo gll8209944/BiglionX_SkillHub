@@ -4,6 +4,7 @@
 *.md
 .env.local
 .env.*.local
+.env.production
 .next/cache
 dist
 coverage

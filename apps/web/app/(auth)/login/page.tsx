@@ -1,8 +1,20 @@
 'use client';
 
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+
+const ERROR_MESSAGES: Record<string, string> = {
+  state_mismatch: '登录状态校验失败，请关闭无痕/隐私模式后重试，或清除本站 Cookie 再登录。',
+  github_denied: '已取消 GitHub 授权。',
+  github_callback_error: 'GitHub 登录处理失败，请稍后重试。',
+  invalid_callback: 'OAuth 回调参数无效。',
+};
 
 export default function LoginPage() {
+  const searchParams = useSearchParams();
+  const error = searchParams.get('error');
+  const errorMessage = error ? ERROR_MESSAGES[error] ?? `登录失败（${error}）` : null;
+
   const handleLogin = () => {
     window.location.href = '/auth/login';
   };
@@ -37,6 +49,12 @@ export default function LoginPage() {
             返回首页
           </Link>
         </div>
+
+        {errorMessage && (
+          <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {errorMessage}
+          </div>
+        )}
 
         {/* 登录按钮 */}
         <div className="mt-8 space-y-3">

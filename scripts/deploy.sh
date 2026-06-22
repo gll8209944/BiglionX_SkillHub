@@ -119,7 +119,18 @@ detect_changes() {
 build_web_only() {
     echo -e "\n${YELLOW}仅构建 Web 服务...${NC}"
 
-    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache web
+    # 从 .env.production 读取 NEXT_PUBLIC_APP_URL 供 next build 写入客户端 bundle
+    local APP_URL="http://localhost:3000"
+    if [ -f ".env.production" ]; then
+        APP_URL=$(grep -E '^NEXT_PUBLIC_APP_URL=' .env.production | head -1 | cut -d= -f2- | tr -d '"')
+        if [ -z "$APP_URL" ]; then
+            APP_URL=$(grep -E '^NEXTAUTH_URL=' .env.production | head -1 | cut -d= -f2- | tr -d '"')
+        fi
+    fi
+    echo -e "${BLUE}构建参数 NEXT_PUBLIC_APP_URL=${APP_URL}${NC}"
+
+    docker-compose -f ${DOCKER_COMPOSE_FILE} build --no-cache web \
+        --build-arg NEXT_PUBLIC_APP_URL="${APP_URL}"
 
     echo -e "${GREEN}✓ Web 镜像构建完成${NC}"
 }

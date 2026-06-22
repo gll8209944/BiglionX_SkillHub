@@ -19,6 +19,7 @@
 
 import { jwtVerify, createRemoteJWKSet, base64url } from 'jose';
 import type { JWTPayload } from 'jose';
+import { getAppBaseUrl } from './app-url';
 import { getDiscovery, resetDiscoveryCache } from './oidc-discovery';
 
 // ============================================================
@@ -100,7 +101,7 @@ export const OIDC_CONFIG = {
    * dev 环境：NEXT_PUBLIC_APP_URL=http://localhost:3000 时为 http://localhost:3000/oauth/callback
    */
   get redirectUri(): string {
-    return `${process.env.NEXT_PUBLIC_APP_URL || 'https://skillhub.proclaw.cc'}/oauth/callback`;
+    return `${getAppBaseUrl()}/oauth/callback`;
   },
 } as const;
 

@@ -9,6 +9,8 @@
  * - 用户信息通过 GET /user 获取
  */
 
+import { getAppBaseUrl } from '@/lib/app-url';
+
 export interface GitHubTokenResponse {
   access_token: string;
   token_type: string;
@@ -38,7 +40,7 @@ export interface GitHubEmail {
  * redirect_uri 中通过 query 参数 provider=github 区分回调来源。
  */
 export function getGitHubAuthUrl(state: string): string {
-  const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL}/oauth/callback?provider=github`;
+  const redirectUri = `${getAppBaseUrl()}/oauth/callback?provider=github`;
   const params = new URLSearchParams({
     client_id: process.env.GITHUB_CLIENT_ID!,
     redirect_uri: redirectUri,
