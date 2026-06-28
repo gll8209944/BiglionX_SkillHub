@@ -24,6 +24,7 @@ out/
 .env.production.local
 .env.production.neon
 .env.production
+.env.vercel
 VERCEL_ENV_SETUP.md
 
 # Logs
